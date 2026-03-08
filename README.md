@@ -15,7 +15,7 @@ This is a single `index.html` file. Just host it anywhere that serves static HTM
 2. Click **Add new site → Deploy manually**
 3. Drag and drop `index.html` onto the page
 4. Done, you'll get a free `yoursite.netlify.app` URL instantly
-5. **My instance is at nocookie.netlify.app**
+5. **My instance is at https://nocookie.netlify.app**
 
 ---
 
