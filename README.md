@@ -43,10 +43,9 @@ To prevent unauthorized use of your key, go to **Credentials → your key → Ap
 The API key is hardcoded at the top of the `<script>` block:
 
 ```js
-const API_KEY = 'YOUR_API_KEY_HERE';
+const API_KEY = 'AIzaSyBawd-6oGh6QP2KPcygvAL6hXgzkkpcLFA';
 ```
-
-Replace it with your own key before deploying.
+If you want your own search personalization, you should use your own API key. If you just want search in general, you can just use mine (already in code)
 
 ---
 
