@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>no cookie yt player</title>
+  <link rel="icon" type="image/png" href="https://i.imgur.com/8Oz87Gr.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface2: #161616;
+      --border: #222222;
+      --accent: #e8ff47;
+      --accent2: #ff4747;
+      --text: #f0f0f0;
+      --muted: #666;
+      --radius: 4px;
+    }
+
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.4;
+    }
+
+    .layout { min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto; }
+
+    header {
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(10,10,10,0.92);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+      gap: 12px;
+    }
+
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-mark { width: 32px; height: 32px; background: var(--accent); border-radius: 2px; display: grid; place-items: center; }
+    .logo-mark svg { width: 18px; height: 18px; }
+    .logo-text { font-family: 'Space Mono', monospace; font-size: 15px; font-weight: 700; letter-spacing: -0.5px; }
+    .logo-text span { color: var(--accent); }
+    .badge { font-family: 'Space Mono', monospace; font-size: 10px; padding: 3px 8px; border: 1px solid var(--border); border-radius: 2px; color: var(--muted); letter-spacing: 1px; }
+
+    main { padding: 48px 32px; max-width: 960px; margin: 0 auto; width: 100%; }
+
+    .hero { margin-bottom: 40px; animation: fadeUp 0.5s ease both; }
+    .hero h1 { font-family: 'Space Mono', monospace; font-size: clamp(24px, 4vw, 40px); font-weight: 700; line-height: 1.1; letter-spacing: -1px; margin-bottom: 12px; }
+    .hero h1 em { font-style: normal; color: var(--accent); }
+    .hero p { color: var(--muted); font-size: 14px; font-weight: 300; line-height: 1.6; max-width: 480px; }
+
+    /* TABS */
+    .tabs { display: flex; gap: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 28px; animation: fadeUp 0.5s 0.05s ease both; }
+    .tab-btn { flex: 1; background: var(--surface); border: none; padding: 10px; font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); cursor: pointer; letter-spacing: 1px; transition: background 0.15s, color 0.15s; border-right: 1px solid var(--border); }
+    .tab-btn:last-child { border-right: none; }
+    .tab-btn.active { background: var(--accent); color: #000; font-weight: 700; }
+    .tab-btn:not(.active):hover { color: var(--text); background: var(--surface2); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* PLAY BY URL */
+    .input-section { margin-bottom: 36px; animation: fadeUp 0.5s 0.1s ease both; }
+    .input-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; display: block; }
+    .input-row { display: flex; gap: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: border-color 0.2s; }
+    .input-row:focus-within { border-color: var(--accent); }
+    .input-row input { flex: 1; background: var(--surface); border: none; padding: 14px 18px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 13px; outline: none; min-width: 0; }
+    .input-row input::placeholder { color: #444; }
+    .input-row button { background: var(--accent); color: #000; border: none; padding: 14px 24px; font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 1px; cursor: pointer; transition: background 0.15s, transform 0.1s; white-space: nowrap; flex-shrink: 0; }
+    .input-row button:hover { background: #d4eb00; }
+    .input-row button:active { transform: scale(0.97); }
+    .input-hint { margin-top: 8px; font-size: 12px; color: #444; }
+    .input-hint code { font-family: 'Space Mono', monospace; color: #555; font-size: 11px; }
+    .error-msg { display: none; margin-top: 10px; padding: 10px 14px; background: rgba(255,71,71,0.1); border-left: 3px solid var(--accent2); border-radius: 2px; font-size: 13px; color: var(--accent2); font-family: 'Space Mono', monospace; }
+    .error-msg.show { display: block; }
+
+    /* SEARCH */
+    .search-section { animation: fadeUp 0.5s 0.1s ease both; }
+    .search-row { display: flex; gap: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: border-color 0.2s; margin-bottom: 16px; }
+    .search-row:focus-within { border-color: var(--accent); }
+    .search-row input { flex: 1; background: var(--surface); border: none; padding: 13px 16px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 13px; outline: none; min-width: 0; }
+    .search-row input::placeholder { color: #444; }
+    .search-row button { background: var(--accent); color: #000; border: none; padding: 13px 20px; font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 1px; cursor: pointer; transition: background 0.15s; white-space: nowrap; flex-shrink: 0; }
+    .search-row button:hover { background: #d4eb00; }
+    .search-row button:active { transform: scale(0.97); }
+    .search-error { display: none; margin-bottom: 12px; padding: 10px 14px; background: rgba(255,71,71,0.1); border-left: 3px solid var(--accent2); border-radius: 2px; font-size: 12px; color: var(--accent2); font-family: 'Space Mono', monospace; line-height: 1.6; }
+    .search-error.show { display: block; }
+    .search-loading { display: none; padding: 32px; text-align: center; }
+    .search-loading.show { display: block; }
+    .spinner { width: 24px; height: 24px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 10px; }
+    .search-loading p { font-family: 'Space Mono', monospace; font-size: 11px; color: #444; letter-spacing: 1px; }
+    .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+    .result-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: border-color 0.15s, transform 0.15s; }
+    .result-item:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .result-thumb-wrap { position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; background: var(--surface2); }
+    .result-thumb { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .result-play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0); transition: background 0.15s; }
+    .result-item:hover .result-play-overlay { background: rgba(0,0,0,0.4); }
+    .result-play-icon { width: 36px; height: 36px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(0.8); transition: opacity 0.15s, transform 0.15s; }
+    .result-item:hover .result-play-icon { opacity: 1; transform: scale(1); }
+    .result-play-icon svg { width: 14px; height: 14px; margin-left: 2px; }
+    .result-meta { padding: 10px 12px; }
+    .result-title { font-size: 12px; color: var(--text); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px; }
+    .result-channel { font-family: 'Space Mono', monospace; font-size: 10px; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .search-more { margin-top: 16px; text-align: center; }
+    .search-more button { background: none; border: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; padding: 9px 20px; border-radius: var(--radius); cursor: pointer; letter-spacing: 1px; transition: border-color 0.15s, color 0.15s; }
+    .search-more button:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* PLAYER */
+    .player-section { animation: fadeUp 0.5s 0.2s ease both; margin-top: 36px; }
+    .player-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .player-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+    .cookie-pill { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 100px; border: 1px solid #2a3a00; background: rgba(232,255,71,0.06); font-family: 'Space Mono', monospace; font-size: 10px; color: var(--accent); letter-spacing: 0.5px; }
+    .cookie-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s ease-in-out infinite; }
+    .player-frame { position: relative; width: 100%; padding-top: 56.25%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .player-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+    .player-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; color: #333; }
+    .player-placeholder svg { width: 48px; height: 48px; opacity: 0.3; }
+    .player-placeholder p { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+    .video-info { margin-top: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .video-id-display { font-family: 'Space Mono', monospace; font-size: 11px; color: #444; }
+    .video-id-display span { color: #666; }
+    .info-actions { display: flex; align-items: center; gap: 10px; }
+    .copy-link-btn { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: color 0.15s; padding: 0; }
+    .copy-link-btn:hover { color: var(--accent); }
+    .copy-link-btn svg { width: 11px; height: 11px; }
+    .open-link { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 5px; transition: color 0.15s; }
+    .open-link:hover { color: var(--accent); }
+    .open-link svg { width: 11px; height: 11px; }
+
+    /* HISTORY */
+    .history-section { margin-top: 36px; animation: fadeUp 0.5s 0.3s ease both; }
+    .history-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .history-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+    .clear-btn { font-family: 'Space Mono', monospace; font-size: 10px; color: #444; background: none; border: none; cursor: pointer; letter-spacing: 1px; transition: color 0.15s; }
+    .clear-btn:hover { color: var(--accent2); }
+    .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+    .history-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: border-color 0.15s, transform 0.15s; position: relative; }
+    .history-item:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .history-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; background: #1a1a1a; }
+    .history-thumb-placeholder { width: 100%; aspect-ratio: 16/9; background: var(--surface2); display: flex; align-items: center; justify-content: center; }
+    .history-thumb-placeholder svg { width: 20px; height: 20px; color: #333; }
+    .history-meta { padding: 8px 10px; }
+    .history-id { font-family: 'Space Mono', monospace; font-size: 10px; color: #555; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .history-time { font-size: 10px; color: #444; margin-top: 2px; display: block; }
+    .history-remove { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: rgba(0,0,0,0.7); border: none; border-radius: 2px; color: #666; cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 10px; transition: color 0.15s; }
+    .history-item:hover .history-remove { display: flex; }
+    .history-remove:hover { color: var(--accent2); }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px); background: var(--accent); color: #000; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 8px 18px; border-radius: 100px; letter-spacing: 1px; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; z-index: 1000; pointer-events: none; white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    footer { padding: 20px 32px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer p { font-size: 12px; color: #333; font-family: 'Space Mono', monospace; }
+    footer a { color: #444; text-decoration: none; }
+    footer a:hover { color: var(--accent); }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 600px) {
+      header, main, footer { padding-left: 16px; padding-right: 16px; }
+      main { padding-top: 28px; }
+      .hero h1 { font-size: 26px; }
+      .input-row input { font-size: 12px; padding: 12px 12px; }
+      .input-row button { padding: 12px 14px; font-size: 11px; }
+      .video-info { flex-direction: column; align-items: flex-start; }
+      .history-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+      .results-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <header>
+    <div class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+      </div>
+      <span class="logo-text">cookie<span>free</span></span>
+    </div>
+    <span class="badge"></span>
+  </header>
+
+  <main>
+    <div class="hero">
+      <h1>Watch YouTube<br/><em>without cookies.</em></h1>
+      <p>Paste any YouTube link or video ID below. Videos are embedded via <code style="font-family:monospace;color:#888">youtube-nocookie.com</code> — no tracking, no personalization cookies.</p>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('play')">▶ PLAY BY URL</button>
+      <button class="tab-btn" onclick="switchTab('search')">⌕ SEARCH</button>
+    </div>
+
+    <!-- TAB: PLAY BY URL -->
+    <div class="tab-panel active" id="tab-play">
+      <div class="input-section">
+        <label class="input-label" for="videoInput">Video URL or ID</label>
+        <div class="input-row">
+          <input type="text" id="videoInput"
+            placeholder="https://www.youtube.com/watch?v=FOaGhE_sejI  or  FOaGhE_sejI"
+            autocomplete="off" spellcheck="false"/>
+          <button onclick="loadVideo()">▶ PLAY</button>
+        </div>
+        <p class="input-hint">Accepts full URLs, short <code>youtu.be</code> links, or bare video IDs.</p>
+        <div class="error-msg" id="errorMsg">⚠ Couldn't extract a valid YouTube video ID.</div>
+      </div>
+    </div>
+
+    <!-- TAB: SEARCH -->
+    <div class="tab-panel" id="tab-search">
+      <div class="search-section">
+        <div class="search-row">
+          <input type="text" id="searchInput" placeholder="Search YouTube…" autocomplete="off" spellcheck="false"/>
+          <button onclick="doSearch()">SEARCH</button>
+        </div>
+        <div class="search-error" id="searchError"></div>
+        <div class="search-loading" id="searchLoading">
+          <div class="spinner"></div>
+          <p>SEARCHING…</p>
+        </div>
+        <div class="results-grid" id="resultsGrid"></div>
+        <div class="search-more" id="searchMore" style="display:none">
+          <button onclick="loadMore()">LOAD MORE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAYER -->
+    <div class="player-section">
+      <div class="player-label-row">
+        <span class="player-label">Player</span>
+        <div class="cookie-pill">
+          <div class="cookie-dot"></div>
+          youtube-nocookie.com
+        </div>
+      </div>
+      <div class="player-frame" id="playerFrame">
+        <div class="player-placeholder" id="placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="3" width="20" height="14" rx="2"/>
+            <path d="M8 21h8M12 17v4"/>
+          </svg>
+          <p>Awaiting video</p>
+        </div>
+      </div>
+      <div class="video-info" id="videoInfo" style="display:none">
+        <span class="video-id-display"><span>ID →</span> <span id="currentId"></span></span>
+        <div class="info-actions">
+          <button class="copy-link-btn" onclick="copyShareLink()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+            COPY LINK
+          </button>
+          <a class="open-link" id="nocookieLink" href="#" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            Open direct link
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="history-section" id="historySection" style="display:none">
+      <div class="history-header">
+        <span class="history-label">Recently Watched</span>
+        <button class="clear-btn" onclick="clearHistory()">CLEAR ALL</button>
+      </div>
+      <div class="history-grid" id="historyGrid"></div>
+    </div>
+  </main>
+
+  <footer>
+    <p>twix's fun projects</p>
+    <p>embedded using <a href="https://www.youtube-nocookie.com" target="_blank" rel="noopener">youtube-nocookie.com</a></p>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API_KEY = 'AIzaSyBawd-6oGh6QP2KPcygvAL6hXgzkkpcLFA';
+  const HISTORY_KEY = 'cookiefree_history';
+  const MAX_HISTORY = 12;
+  let currentVideoId = null;
+  let nextPageToken = null;
+  let lastQuery = '';
+
+  /* ── Toast ── */
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  /* ── Tabs ── */
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', (i === 0 && tab === 'play') || (i === 1 && tab === 'search'));
+    });
+    document.getElementById('tab-play').classList.toggle('active', tab === 'play');
+    document.getElementById('tab-search').classList.toggle('active', tab === 'search');
+  }
+
+  /* ── Search ── */
+  async function doSearch(pageToken) {
+    const query = document.getElementById('searchInput').value.trim();
+    if (!query) return;
+
+    if (!pageToken) {
+      lastQuery = query;
+      nextPageToken = null;
+      document.getElementById('resultsGrid').innerHTML = '';
+      document.getElementById('searchMore').style.display = 'none';
+    }
+
+    const searchErr = document.getElementById('searchError');
+    const loading = document.getElementById('searchLoading');
+    searchErr.classList.remove('show');
+    loading.classList.add('show');
+
+    try {
+      const params = new URLSearchParams({
+        part: 'snippet',
+        q: query,
+        type: 'video',
+        maxResults: 12,
+        key: API_KEY,
+        ...(pageToken && { pageToken })
+      });
+
+      const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
+      const data = await res.json();
+
+      if (data.error) {
+        const msg = data.error.message || 'Unknown API error';
+        const code = data.error.code || '';
+        searchErr.textContent = `⚠ API error ${code}: ${msg}`;
+        searchErr.classList.add('show');
+        loading.classList.remove('show');
+        return;
+      }
+
+      nextPageToken = data.nextPageToken || null;
+      renderResults(data.items, !!pageToken);
+      document.getElementById('searchMore').style.display = nextPageToken ? 'block' : 'none';
+
+    } catch (e) {
+      searchErr.textContent = `⚠ Network error: ${e.message}`;
+      searchErr.classList.add('show');
+    }
+
+    loading.classList.remove('show');
+  }
+
+  function loadMore() {
+    if (nextPageToken) {
+      document.getElementById('searchInput').value = lastQuery;
+      doSearch(nextPageToken);
+    }
+  }
+
+  function renderResults(items, append) {
+    const grid = document.getElementById('resultsGrid');
+    if (!append) grid.innerHTML = '';
+
+    items.forEach(item => {
+      const id = item.id.videoId;
+      const title = item.snippet.title;
+      const channel = item.snippet.channelTitle;
+      const thumb = item.snippet.thumbnails?.medium?.url || '';
+
+      const el = document.createElement('div');
+      el.className = 'result-item';
+      el.onclick = () => {
+        loadVideo(id);
+        setTimeout(() => {
+          document.getElementById('playerFrame').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      };
+      el.innerHTML = `
+        <div class="result-thumb-wrap">
+          <img class="result-thumb" src="${thumb}" alt="" loading="lazy"/>
+          <div class="result-play-overlay">
+            <div class="result-play-icon">
+              <svg viewBox="0 0 24 24" fill="#000"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="result-meta">
+          <div class="result-title">${title}</div>
+          <div class="result-channel">${channel}</div>
+        </div>
+      `;
+      grid.appendChild(el);
+    });
+  }
+
+  /* ── Video ID extraction ── */
+  function extractVideoId(input) {
+    input = input.trim();
+    if (!input) return null;
+    if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
+    try {
+      const url = new URL(input.startsWith('http') ? input : 'https://' + input);
+      if (url.searchParams.get('v')) return url.searchParams.get('v');
+      if (url.hostname === 'youtu.be') return url.pathname.slice(1).split('?')[0];
+      const m = url.pathname.match(/\/(embed|v|shorts)\/([a-zA-Z0-9_-]{11})/);
+      if (m) return m[2];
+    } catch (_) {}
+    const m = input.match(/[?&/]v[=/]([a-zA-Z0-9_-]{11})/);
+    if (m) return m[1];
+    return null;
+  }
+
+  /* ── History ── */
+  function timeAgo(ts) {
+    const s = Math.floor((Date.now() - ts) / 1000);
+    if (s < 60) return 'just now';
+    if (s < 3600) return Math.floor(s / 60) + 'm ago';
+    if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+    return Math.floor(s / 86400) + 'd ago';
+  }
+
+  function getHistory() {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
+    catch { return []; }
+  }
+
+  function saveToHistory(id) {
+    let h = getHistory().filter(i => i.id !== id);
+    h.unshift({ id, ts: Date.now() });
+    if (h.length > MAX_HISTORY) h = h.slice(0, MAX_HISTORY);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
+    renderHistory();
+  }
+
+  function removeFromHistory(id) {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(getHistory().filter(i => i.id !== id)));
+    renderHistory();
+  }
+
+  function clearHistory() {
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistory();
+    showToast('History cleared');
+  }
+
+  function renderHistory() {
+    const h = getHistory();
+    const section = document.getElementById('historySection');
+    const grid = document.getElementById('historyGrid');
+    if (h.length === 0) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+    grid.innerHTML = h.map(item => `
+      <div class="history-item" onclick="loadFromHistory('${item.id}')">
+        <img class="history-thumb" src="https://i.ytimg.com/vi/${item.id}/mqdefault.jpg" alt=""
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+        <div class="history-thumb-placeholder" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+        <div class="history-meta">
+          <span class="history-id">${item.id}</span>
+          <span class="history-time">${timeAgo(item.ts)}</span>
+        </div>
+        <button class="history-remove" onclick="event.stopPropagation();removeFromHistory('${item.id}')" title="Remove">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function loadFromHistory(id) {
+    document.getElementById('videoInput').value = id;
+    switchTab('play');
+    loadVideo();
+    setTimeout(() => {
+      document.getElementById('playerFrame').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
+
+  /* ── Shareable links ── */
+  function getUrlParam(key) { return new URLSearchParams(window.location.search).get(key); }
+
+  function updateUrl(id) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('v', id);
+    history.replaceState(null, '', url.toString());
+  }
+
+  function copyShareLink() {
+    if (!currentVideoId) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set('v', currentVideoId);
+    navigator.clipboard.writeText(url.toString())
+      .then(() => showToast('Link copied!'))
+      .catch(() => showToast('Copy failed'));
+  }
+
+  /* ── Load video ── */
+  function loadVideo(id) {
+    const raw = id || document.getElementById('videoInput').value;
+    const error = document.getElementById('errorMsg');
+    const frame = document.getElementById('playerFrame');
+    const placeholder = document.getElementById('placeholder');
+    const info = document.getElementById('videoInfo');
+
+    const videoId = extractVideoId(raw);
+    if (!videoId) { error.classList.add('show'); return; }
+    error.classList.remove('show');
+
+    const existing = frame.querySelector('iframe');
+    if (existing) existing.remove();
+    if (placeholder) placeholder.style.display = 'none';
+
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    iframe.allowFullscreen = true;
+    iframe.title = 'YouTube video player';
+    frame.appendChild(iframe);
+
+    currentVideoId = videoId;
+    document.getElementById('currentId').textContent = videoId;
+    document.getElementById('nocookieLink').href = `https://www.youtube-nocookie.com/embed/${videoId}`;
+    info.style.display = 'flex';
+
+    updateUrl(videoId);
+    saveToHistory(videoId);
+  }
+
+  /* ── Enter key support ── */
+  document.getElementById('videoInput').addEventListener('keydown', e => { if (e.key === 'Enter') loadVideo(); });
+  document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+  /* ── Init ── */
+  renderHistory();
+
+  const paramId = getUrlParam('v');
+  if (paramId) {
+    document.getElementById('videoInput').value = paramId;
+    loadVideo(paramId);
+  }
+</script>
+</body>
+</html>
