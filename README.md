@@ -6,7 +6,7 @@ Built as a single HTML file.
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
 This is a single `index.html` file. Just host it anywhere that serves static HTML.
 
