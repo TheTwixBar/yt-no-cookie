@@ -1,0 +1,87 @@
+const { execFile } = require("child_process");
+const path = require("path");
+
+// yt-dlp binary path — Netlify includes Python, we install yt-dlp at build time
+const YTDLP = process.env.YTDLP_PATH || "yt-dlp";
+
+function runYtDlp(args) {
+  return new Promise((resolve, reject) => {
+    execFile(YTDLP, args, { timeout: 8000 }, (err, stdout, stderr) => {
+      if (err) return reject(new Error(stderr || err.message));
+      resolve(stdout.trim());
+    });
+  });
+}
+
+exports.handler = async (event) => {
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Content-Type": "application/json",
+  };
+
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 204, headers };
+  }
+
+  const videoId = event.queryStringParameters?.v;
+  if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+    return {
+      statusCode: 400,
+      headers,
+      body: JSON.stringify({ error: "Invalid or missing video ID" }),
+    };
+  }
+
+  const url = `https://www.youtube.com/watch?v=${videoId}`;
+
+  try {
+    // Get available formats as JSON
+    const raw = await runYtDlp([
+      "--dump-json",
+      "--no-playlist",
+      "--no-warnings",
+      url,
+    ]);
+
+    const info = JSON.parse(raw);
+
+    // Filter to formats that have a direct URL (not DASH-only fragments)
+    const formats = (info.formats || [])
+      .filter((f) => f.url && f.ext !== "mhtml")
+      .map((f) => ({
+        format_id: f.format_id,
+        ext: f.ext,
+        quality: f.format_note || f.quality || "",
+        resolution: f.resolution || (f.height ? `${f.height}p` : "audio only"),
+        filesize: f.filesize || f.filesize_approx || null,
+        vcodec: f.vcodec,
+        acodec: f.acodec,
+        url: f.url,
+        has_video: f.vcodec && f.vcodec !== "none",
+        has_audio: f.acodec && f.acodec !== "none",
+      }))
+      // Sort: combined streams first, then by height desc
+      .sort((a, b) => {
+        if (a.has_video && a.has_audio && !(b.has_video && b.has_audio)) return -1;
+        if (b.has_video && b.has_audio && !(a.has_video && a.has_audio)) return 1;
+        return (b.resolution?.replace("p", "") || 0) - (a.resolution?.replace("p", "") || 0);
+      });
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        title: info.title,
+        thumbnail: info.thumbnail,
+        duration: info.duration,
+        formats,
+      }),
+    };
+  } catch (err) {
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: err.message }),
+    };
+  }
+};
