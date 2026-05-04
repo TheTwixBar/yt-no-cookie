@@ -11,7 +11,7 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid or missing video ID" }) };
   }
 
-  const res = await fetch("https://api.cobalt.tools/", {
+  const res = await fetch("https://cobalt.api.reichardd.dev/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
