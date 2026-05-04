@@ -2,7 +2,7 @@ const { execFile } = require("child_process");
 const path = require("path");
 
 // yt-dlp binary path — Netlify includes Python, we install yt-dlp at build time
-const YTDLP = process.env.YTDLP_PATH || "yt-dlp";
+const YTDLP = process.env.YTDLP_PATH || path.join(__dirname, "bin", "yt-dlp");
 
 function runYtDlp(args) {
   return new Promise((resolve, reject) => {
