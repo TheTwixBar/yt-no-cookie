@@ -1,5 +1,5 @@
 [build]
-  command   = "pip install yt-dlp && ln -sf $(which yt-dlp) /opt/build/repo/yt-dlp"
+  command   = "mkdir -p netlify/functions/bin && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o netlify/functions/bin/yt-dlp && chmod +x netlify/functions/bin/yt-dlp"
   publish   = "."
 
 [functions]
@@ -10,7 +10,3 @@
   [headers.values]
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
-
-[build.environment]
-  YTDLP_PATH = "/opt/build/repo/yt-dlp"
-  PYTHON_VERSION = "3.11"
