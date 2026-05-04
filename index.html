@@ -160,6 +160,35 @@
     .history-item:hover .history-remove { display: flex; }
     .history-remove:hover { color: var(--accent2); }
 
+    /* DOWNLOAD */
+    .dl-btn { font-family: 'Space Mono', monospace; font-size: 11px; color: #000; background: var(--accent); border: none; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 2px; font-weight: 700; letter-spacing: 0.5px; transition: background 0.15s; }
+    .dl-btn:hover { background: #d4eb00; }
+    .dl-btn svg { width: 11px; height: 11px; }
+
+    .dl-modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+    .dl-modal-backdrop.show { display: flex; }
+    .dl-modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 480px; margin: 16px; animation: fadeUp 0.2s ease both; }
+    .dl-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .dl-modal-title { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+    .dl-modal-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0; transition: color 0.15s; }
+    .dl-modal-close:hover { color: var(--accent2); }
+    .dl-modal-body { padding: 20px; }
+    .dl-video-title { font-size: 13px; color: var(--text); margin-bottom: 16px; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dl-loading { text-align: center; padding: 24px 0; }
+    .dl-loading .spinner { margin: 0 auto 10px; }
+    .dl-loading p { font-family: 'Space Mono', monospace; font-size: 11px; color: #444; letter-spacing: 1px; }
+    .dl-error { padding: 12px 14px; background: rgba(255,71,71,0.1); border-left: 3px solid var(--accent2); border-radius: 2px; font-size: 12px; color: var(--accent2); font-family: 'Space Mono', monospace; }
+    .dl-formats { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; }
+    .dl-format { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); gap: 10px; transition: border-color 0.15s; }
+    .dl-format:hover { border-color: var(--accent); }
+    .dl-format-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .dl-format-res { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text); }
+    .dl-format-meta { font-family: 'Space Mono', monospace; font-size: 10px; color: #555; }
+    .dl-format-link { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; color: #000; background: var(--accent); padding: 5px 12px; border-radius: 2px; text-decoration: none; white-space: nowrap; flex-shrink: 0; transition: background 0.15s; }
+    .dl-format-link:hover { background: #d4eb00; }
+    .dl-section-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1px; color: #444; text-transform: uppercase; margin: 12px 0 6px; }
+    .dl-note { margin-top: 14px; font-size: 11px; color: #444; line-height: 1.5; }
+
     /* TOAST */
     .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px); background: var(--accent); color: #000; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 8px 18px; border-radius: 100px; letter-spacing: 1px; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; z-index: 1000; pointer-events: none; white-space: nowrap; }
     .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
@@ -274,6 +303,13 @@
             </svg>
             COPY LINK
           </button>
+          <button class="dl-btn" onclick="openDownload()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            DOWNLOAD
+          </button>
           <a class="open-link" id="nocookieLink" href="#" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
@@ -299,6 +335,28 @@
     <p>twix's fun projects</p>
     <p>embedded using <a href="https://www.youtube-nocookie.com" target="_blank" rel="noopener">youtube-nocookie.com</a></p>
   </footer>
+</div>
+
+<!-- DOWNLOAD MODAL -->
+<div class="dl-modal-backdrop" id="dlBackdrop" onclick="closeDownload(event)">
+  <div class="dl-modal">
+    <div class="dl-modal-header">
+      <span class="dl-modal-title">⬇ Download Video</span>
+      <button class="dl-modal-close" onclick="closeDownloadDirect()">✕</button>
+    </div>
+    <div class="dl-modal-body">
+      <div id="dlLoading" class="dl-loading">
+        <div class="spinner"></div>
+        <p>FETCHING FORMATS…</p>
+      </div>
+      <div id="dlError" class="dl-error" style="display:none"></div>
+      <div id="dlContent" style="display:none">
+        <div class="dl-video-title" id="dlTitle"></div>
+        <div id="dlFormatList" class="dl-formats"></div>
+        <p class="dl-note">⚠ High-quality video and audio are separate streams. Combined streams (360p/720p) download directly. For best quality, use <a href="https://cobalt.tools" target="_blank" style="color:var(--accent)">cobalt.tools</a> to merge.</p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -564,6 +622,101 @@
   if (paramId) {
     document.getElementById('videoInput').value = paramId;
     loadVideo(paramId);
+  }
+
+  /* ── Download modal ── */
+  function openDownload() {
+    if (!currentVideoId) return;
+    const backdrop = document.getElementById('dlBackdrop');
+    document.getElementById('dlLoading').style.display = 'block';
+    document.getElementById('dlError').style.display = 'none';
+    document.getElementById('dlContent').style.display = 'none';
+    backdrop.classList.add('show');
+    fetchFormats(currentVideoId);
+  }
+
+  function closeDownloadDirect() {
+    document.getElementById('dlBackdrop').classList.remove('show');
+  }
+
+  function closeDownload(e) {
+    if (e.target === document.getElementById('dlBackdrop')) closeDownloadDirect();
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeDownloadDirect();
+  });
+
+  async function fetchFormats(videoId) {
+    try {
+      const res = await fetch(`/.netlify/functions/download?v=${videoId}`);
+      const data = await res.json();
+
+      document.getElementById('dlLoading').style.display = 'none';
+
+      if (data.error) {
+        const err = document.getElementById('dlError');
+        err.textContent = '⚠ ' + data.error;
+        err.style.display = 'block';
+        return;
+      }
+
+      document.getElementById('dlTitle').textContent = data.title || videoId;
+      renderFormats(data.formats || []);
+      document.getElementById('dlContent').style.display = 'block';
+
+    } catch (e) {
+      document.getElementById('dlLoading').style.display = 'none';
+      const err = document.getElementById('dlError');
+      err.textContent = '⚠ Network error: ' + e.message;
+      err.style.display = 'block';
+    }
+  }
+
+  function formatSize(bytes) {
+    if (!bytes) return '';
+    if (bytes > 1e9) return (bytes / 1e9).toFixed(1) + ' GB';
+    if (bytes > 1e6) return (bytes / 1e6).toFixed(1) + ' MB';
+    return (bytes / 1e3).toFixed(0) + ' KB';
+  }
+
+  function renderFormats(formats) {
+    const list = document.getElementById('dlFormatList');
+    list.innerHTML = '';
+
+    const combined = formats.filter(f => f.has_video && f.has_audio);
+    const videoOnly = formats.filter(f => f.has_video && !f.has_audio);
+    const audioOnly = formats.filter(f => !f.has_video && f.has_audio);
+
+    function makeSection(label, items) {
+      if (!items.length) return;
+      const lbl = document.createElement('div');
+      lbl.className = 'dl-section-label';
+      lbl.textContent = label;
+      list.appendChild(lbl);
+
+      items.slice(0, 6).forEach(f => {
+        const row = document.createElement('div');
+        row.className = 'dl-format';
+        const size = formatSize(f.filesize);
+        row.innerHTML = `
+          <div class="dl-format-info">
+            <span class="dl-format-res">${f.resolution || 'audio'}</span>
+            <span class="dl-format-meta">${f.ext.toUpperCase()}${size ? ' · ' + size : ''}</span>
+          </div>
+          <a class="dl-format-link" href="${f.url}" download target="_blank" rel="noopener">↓ GET</a>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    makeSection('Combined (video + audio)', combined);
+    makeSection('Video only', videoOnly);
+    makeSection('Audio only', audioOnly);
+
+    if (!combined.length && !videoOnly.length && !audioOnly.length) {
+      list.innerHTML = '<div class="dl-error">No downloadable formats found.</div>';
+    }
   }
 </script>
 </body>
