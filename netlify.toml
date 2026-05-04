@@ -3,7 +3,8 @@
   publish   = "."
 
 [functions]
-  directory = "netlify/functions"
+  directory        = "netlify/functions"
+  included_files   = ["netlify/functions/bin/**"]
 
 [[headers]]
   for = "/*"
