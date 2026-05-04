@@ -1,5 +1,5 @@
 [build]
-  command   = "mkdir -p netlify/functions/bin && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o netlify/functions/bin/yt-dlp && chmod +x netlify/functions/bin/yt-dlp"
+  command   = "mkdir -p netlify/functions/bin && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -o netlify/functions/bin/yt-dlp && chmod +x netlify/functions/bin/yt-dlp"
   publish   = "."
 
 [functions]
