@@ -1,7 +1,6 @@
 const { execFile } = require("child_process");
 const path = require("path");
 
-// yt-dlp binary path — Netlify includes Python, we install yt-dlp at build time
 const YTDLP = process.env.YTDLP_PATH || path.join(__dirname, "bin", "yt-dlp");
 
 function runYtDlp(args) {
@@ -35,7 +34,6 @@ exports.handler = async (event) => {
   const url = `https://www.youtube.com/watch?v=${videoId}`;
 
   try {
-    // Get available formats as JSON
     const raw = await runYtDlp([
       "--dump-json",
       "--no-playlist",
@@ -45,7 +43,6 @@ exports.handler = async (event) => {
 
     const info = JSON.parse(raw);
 
-    // Filter to formats that have a direct URL (not DASH-only fragments)
     const formats = (info.formats || [])
       .filter((f) => f.url && f.ext !== "mhtml")
       .map((f) => ({
@@ -60,7 +57,6 @@ exports.handler = async (event) => {
         has_video: f.vcodec && f.vcodec !== "none",
         has_audio: f.acodec && f.acodec !== "none",
       }))
-      // Sort: combined streams first, then by height desc
       .sort((a, b) => {
         if (a.has_video && a.has_audio && !(b.has_video && b.has_audio)) return -1;
         if (b.has_video && b.has_audio && !(a.has_video && a.has_audio)) return 1;
