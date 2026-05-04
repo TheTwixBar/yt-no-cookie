@@ -1,83 +1,33 @@
-const { execFile } = require("child_process");
-const path = require("path");
-
-const YTDLP = process.env.YTDLP_PATH || path.join(__dirname, "bin", "yt-dlp");
-
-function runYtDlp(args) {
-  return new Promise((resolve, reject) => {
-    execFile(YTDLP, args, { timeout: 8000 }, (err, stdout, stderr) => {
-      if (err) return reject(new Error(stderr || err.message));
-      resolve(stdout.trim());
-    });
-  });
-}
-
 exports.handler = async (event) => {
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Content-Type": "application/json",
   };
 
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers };
-  }
+  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers };
 
   const videoId = event.queryStringParameters?.v;
   if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
-    return {
-      statusCode: 400,
-      headers,
-      body: JSON.stringify({ error: "Invalid or missing video ID" }),
-    };
+    return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid or missing video ID" }) };
   }
 
-  const url = `https://www.youtube.com/watch?v=${videoId}`;
+  const res = await fetch("https://api.cobalt.tools/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+    },
+    body: JSON.stringify({
+      url: `https://www.youtube.com/watch?v=${videoId}`,
+      videoQuality: "1080",
+    }),
+  });
 
-  try {
-    const raw = await runYtDlp([
-      "--dump-json",
-      "--no-playlist",
-      "--no-warnings",
-      url,
-    ]);
+  const data = await res.json();
 
-    const info = JSON.parse(raw);
-
-    const formats = (info.formats || [])
-      .filter((f) => f.url && f.ext !== "mhtml")
-      .map((f) => ({
-        format_id: f.format_id,
-        ext: f.ext,
-        quality: f.format_note || f.quality || "",
-        resolution: f.resolution || (f.height ? `${f.height}p` : "audio only"),
-        filesize: f.filesize || f.filesize_approx || null,
-        vcodec: f.vcodec,
-        acodec: f.acodec,
-        url: f.url,
-        has_video: f.vcodec && f.vcodec !== "none",
-        has_audio: f.acodec && f.acodec !== "none",
-      }))
-      .sort((a, b) => {
-        if (a.has_video && a.has_audio && !(b.has_video && b.has_audio)) return -1;
-        if (b.has_video && b.has_audio && !(a.has_video && a.has_audio)) return 1;
-        return (b.resolution?.replace("p", "") || 0) - (a.resolution?.replace("p", "") || 0);
-      });
-
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({
-        title: info.title,
-        thumbnail: info.thumbnail,
-        duration: info.duration,
-        formats,
-      }),
-    };
-  } catch (err) {
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: err.message }),
-    };
+  if (!res.ok || data.status === "error") {
+    return { statusCode: 500, headers, body: JSON.stringify({ error: data?.error?.code || "Download failed" }) };
   }
+
+  return { statusCode: 200, headers, body: JSON.stringify(data) };
 };
