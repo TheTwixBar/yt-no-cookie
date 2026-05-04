@@ -1,10 +1,8 @@
 [build]
-  command   = "mkdir -p netlify/functions/bin && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -o netlify/functions/bin/yt-dlp && chmod +x netlify/functions/bin/yt-dlp"
-  publish   = "."
+  publish = "."
 
 [functions]
-  directory        = "netlify/functions"
-  included_files   = ["netlify/functions/bin/**"]
+  directory = "netlify/functions"
 
 [[headers]]
   for = "/*"
