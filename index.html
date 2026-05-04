@@ -680,44 +680,42 @@
     return (bytes / 1e3).toFixed(0) + ' KB';
   }
 
-  function renderFormats(formats) {
-    const list = document.getElementById('dlFormatList');
-    list.innerHTML = '';
+ function renderFormats(formats) {
+  const list = document.getElementById('dlFormatList');
+  list.innerHTML = '';
 
-    const combined = formats.filter(f => f.has_video && f.has_audio);
-    const videoOnly = formats.filter(f => f.has_video && !f.has_audio);
-    const audioOnly = formats.filter(f => !f.has_video && f.has_audio);
-
-    function makeSection(label, items) {
-      if (!items.length) return;
-      const lbl = document.createElement('div');
-      lbl.className = 'dl-section-label';
-      lbl.textContent = label;
-      list.appendChild(lbl);
-
-      items.slice(0, 6).forEach(f => {
-        const row = document.createElement('div');
-        row.className = 'dl-format';
-        const size = formatSize(f.filesize);
-        row.innerHTML = `
-          <div class="dl-format-info">
-            <span class="dl-format-res">${f.resolution || 'audio'}</span>
-            <span class="dl-format-meta">${f.ext.toUpperCase()}${size ? ' · ' + size : ''}</span>
-          </div>
-          <a class="dl-format-link" href="${f.url}" download target="_blank" rel="noopener">↓ GET</a>
-        `;
-        list.appendChild(row);
-      });
-    }
-
-    makeSection('Combined (video + audio)', combined);
-    makeSection('Video only', videoOnly);
-    makeSection('Audio only', audioOnly);
-
-    if (!combined.length && !videoOnly.length && !audioOnly.length) {
-      list.innerHTML = '<div class="dl-error">No downloadable formats found.</div>';
-    }
+  if (!formats.length) {
+    list.innerHTML = '<div class="dl-error">No downloadable formats found.</div>';
+    return;
   }
+
+  const video = formats.filter(f => f.type === 'video');
+  const audio = formats.filter(f => f.type === 'audio');
+
+  function makeSection(label, items) {
+    if (!items.length) return;
+    const lbl = document.createElement('div');
+    lbl.className = 'dl-section-label';
+    lbl.textContent = label;
+    list.appendChild(lbl);
+
+    items.forEach(f => {
+      const row = document.createElement('div');
+      row.className = 'dl-format';
+      row.innerHTML = `
+        <div class="dl-format-info">
+          <span class="dl-format-res">${f.quality}</span>
+          <span class="dl-format-meta">video + audio merged</span>
+        </div>
+        <a class="dl-format-link" href="${f.url}" download target="_blank" rel="noopener">↓ GET</a>
+      `;
+      list.appendChild(row);
+    });
+  }
+
+  makeSection('Video', video);
+  makeSection('Audio only', audio);
+}
 </script>
 </body>
 </html>
