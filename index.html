@@ -707,7 +707,7 @@
           <span class="dl-format-res">${f.quality}</span>
           <span class="dl-format-meta">video + audio merged</span>
         </div>
-        <a class="dl-format-link" href="${f.url}" download target="_blank" rel="noopener">↓ GET</a>
+        <a class="dl-format-link" href="${f.tunnel ? `/.netlify/functions/proxy?url=${encodeURIComponent(f.url)}&filename=${encodeURIComponent(f.filename || f.quality)}` : f.url}" download target="_blank" rel="noopener">↓ GET</a>
       `;
       list.appendChild(row);
     });
