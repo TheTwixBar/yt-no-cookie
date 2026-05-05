@@ -15,7 +15,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const COBALT = "https://cobalt.meowing.de";
+  const COBALT = "subito-c.meowing.de";
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
   const formats = [];
   let title = null;
