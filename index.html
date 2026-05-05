@@ -648,29 +648,12 @@
   });
 
   async function fetchFormats(videoId) {
-    try {
-      const res = await fetch(`/.netlify/functions/download?v=${videoId}`);
-      const data = await res.json();
-
-      document.getElementById('dlLoading').style.display = 'none';
-
-      if (data.error) {
-        const err = document.getElementById('dlError');
-        err.textContent = '⚠ ' + data.error;
-        err.style.display = 'block';
-        return;
-      }
-
-      document.getElementById('dlTitle').textContent = data.title || videoId;
-      renderFormats(data.formats || []);
-      document.getElementById('dlContent').style.display = 'block';
-
-    } catch (e) {
-      document.getElementById('dlLoading').style.display = 'none';
-      const err = document.getElementById('dlError');
-      err.textContent = '⚠ Network error: ' + e.message;
-      err.style.display = 'block';
-    }
+    // No need to pre-fetch cobalt URLs — the edge function handles everything at click time.
+    // Just show the download options immediately.
+    document.getElementById('dlLoading').style.display = 'none';
+    document.getElementById('dlTitle').textContent = videoId;
+    renderFormats(videoId);
+    document.getElementById('dlContent').style.display = 'block';
   }
 
   function formatSize(bytes) {
@@ -680,42 +663,29 @@
     return (bytes / 1e3).toFixed(0) + ' KB';
   }
 
- function renderFormats(formats) {
+ function renderFormats(videoId) {
   const list = document.getElementById('dlFormatList');
   list.innerHTML = '';
 
-  if (!formats.length) {
-    list.innerHTML = '<div class="dl-error">No downloadable formats found.</div>';
-    return;
-  }
+  const formats = [
+    { label: 'Best quality (h264)', mode: 'video', quality: 'max' },
+    { label: '720p (h264)',         mode: 'video', quality: '720' },
+    { label: 'MP3 audio',           mode: 'audio', quality: 'mp3' },
+  ];
 
-  const video = formats.filter(f => f.type === 'video');
-  const audio = formats.filter(f => f.type === 'audio');
-
-  function makeSection(label, items) {
-    if (!items.length) return;
-    const lbl = document.createElement('div');
-    lbl.className = 'dl-section-label';
-    lbl.textContent = label;
-    list.appendChild(lbl);
-
-    items.forEach(f => {
-      const proxyUrl = `/download-proxy?url=${encodeURIComponent(f.url)}&filename=${encodeURIComponent(f.filename || f.quality)}`;
-      const row = document.createElement('div');
-      row.className = 'dl-format';
-      row.innerHTML = `
-        <div class="dl-format-info">
-          <span class="dl-format-res">${f.quality}</span>
-          <span class="dl-format-meta">video + audio merged</span>
-        </div>
-        <a class="dl-format-link" href="${proxyUrl}" download>↓ GET</a>
-      `;
-      list.appendChild(row);
-    });
-  }
-
-  makeSection('Video', video);
-  makeSection('Audio only', audio);
+  formats.forEach(f => {
+    const url = `/download-proxy?v=${encodeURIComponent(videoId)}&mode=${f.mode}&quality=${f.quality}`;
+    const row = document.createElement('div');
+    row.className = 'dl-format';
+    row.innerHTML = `
+      <div class="dl-format-info">
+        <span class="dl-format-res">${f.label}</span>
+        <span class="dl-format-meta">via cobalt</span>
+      </div>
+      <a class="dl-format-link" href="${url}" download>↓ GET</a>
+    `;
+    list.appendChild(row);
+  });
 }
 </script>
 </body>
