@@ -1,60 +1,93 @@
-// Netlify Edge Function — streams cobalt tunnel URLs to the browser.
-// Unlike regular Netlify functions, edge functions support true streaming
-// responses with no 6MB body limit, which is required for video files.
+// Netlify Edge Function — calls cobalt fresh at download time and streams
+// the result directly to the browser. This avoids the tunnel-URL expiry
+// problem where pre-fetched URLs go stale before the user clicks GET.
 //
-// Accessed as: /.netlify/edge-functions/proxy?url=<encoded-cobalt-url>&filename=<name>
+// Accessed as: /download-proxy?v=<videoId>&mode=<video|audio>&quality=<max|720>
+
+const COBALT_INSTANCES = [
+  "cobalt.alpha.wolfy.love",
+  "subito-c.meowing.de",
+  "nuko-c.meowing.de",
+  "apicobalt.mgytr.top",
+  "dog.kittycat.boo",
+  "cobaltapi.kittycat.boo",
+  "cobaltapi.squair.xyz",
+  "cobalt.omega.wolfy.love",
+  "api.dl.woof.monster",
+  "lime.clxxped.lol",
+  "grapefruit.clxxped.lol",
+  "melon.clxxped.lol",
+  "api.cobalt.liubquanti.click",
+  "api.cobalt.blackcat.sweeux.org",
+  "api.qwkuns.me",
+  "cobaltapi.cjs.nz",
+];
 
 export default async (request) => {
   const { searchParams } = new URL(request.url);
-  const rawUrl = searchParams.get("url");
-  const filename = searchParams.get("filename") || "download";
+  const videoId = searchParams.get("v");
+  const mode = searchParams.get("mode") || "video"; // "video" or "audio"
+  const quality = searchParams.get("quality") || "max"; // "max" or "720"
 
-  if (!rawUrl) {
-    return new Response("Missing url parameter", { status: 400 });
+  if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+    return new Response("Invalid or missing video ID", { status: 400 });
   }
 
-  let targetUrl;
-  try {
-    targetUrl = new URL(rawUrl);
-  } catch {
-    return new Response("Invalid url parameter", { status: 400 });
-  }
+  const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
-  if (targetUrl.protocol !== "https:") {
-    return new Response("Only https URLs are allowed", { status: 403 });
-  }
+  const cobaltBody = mode === "audio"
+    ? { url: videoUrl, downloadMode: "audio", audioFormat: "mp3", audioBitrate: "128", filenameStyle: "pretty" }
+    : { url: videoUrl, videoQuality: quality, youtubeVideoCodec: "h264", downloadMode: "auto", filenameStyle: "pretty" };
 
-  try {
-    const upstream = await fetch(targetUrl.toString(), {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      },
-    });
+  // Try each cobalt instance until one returns a usable tunnel/redirect URL
+  let tunnelUrl = null;
+  let filename = videoId;
 
-    if (!upstream.ok) {
-      return new Response(`Upstream error: ${upstream.status}`, {
-        status: upstream.status,
+  for (const instance of COBALT_INSTANCES) {
+    try {
+      const res = await fetch(`https://${instance}/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(cobaltBody),
+        signal: AbortSignal.timeout(12000),
       });
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (data.status === "error") continue;
+      if ((data.status === "tunnel" || data.status === "redirect" || data.status === "stream") && data.url) {
+        tunnelUrl = data.url;
+        if (data.filename) filename = data.filename;
+        break;
+      }
+    } catch (_) {
+      continue;
+    }
+  }
+
+  if (!tunnelUrl) {
+    return new Response("All cobalt instances failed to process this video.", { status: 502 });
+  }
+
+  // Immediately fetch and stream the tunnel URL — it's fresh so it won't be expired
+  try {
+    const upstream = await fetch(tunnelUrl);
+    if (!upstream.ok) {
+      return new Response(`Cobalt tunnel error: ${upstream.status}`, { status: upstream.status });
     }
 
-    const contentType =
-      upstream.headers.get("content-type") || "application/octet-stream";
+    const contentType = upstream.headers.get("content-type") || "application/octet-stream";
     const contentLength = upstream.headers.get("content-length");
 
     const headers = new Headers({
       "Content-Type": contentType,
       "Content-Disposition": `attachment; filename="${filename}"`,
-      "Access-Control-Allow-Origin": "*",
       "Cache-Control": "no-store",
     });
-
     if (contentLength) headers.set("Content-Length", contentLength);
 
-    // Stream the body directly — no buffering
     return new Response(upstream.body, { status: 200, headers });
   } catch (err) {
-    return new Response(`Proxy error: ${err.message}`, { status: 502 });
+    return new Response(`Stream error: ${err.message}`, { status: 502 });
   }
 };
 
