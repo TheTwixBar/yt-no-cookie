@@ -53,6 +53,7 @@ export default async (request) => {
       });
       if (!res.ok) continue;
       const data = await res.json();
+      console.log(`Cobalt ${instance} response:`, JSON.stringify(data).slice(0, 200));
       if (data.status === "error") continue;
       if ((data.status === "tunnel" || data.status === "redirect" || data.status === "stream") && data.url) {
         tunnelUrl = data.url;
@@ -70,7 +71,11 @@ export default async (request) => {
 
   // Immediately fetch and stream the tunnel URL — it's fresh so it won't be expired
   try {
+    console.log("Fetching tunnel URL:", tunnelUrl);
     const upstream = await fetch(tunnelUrl);
+    console.log("Tunnel response status:", upstream.status);
+    console.log("Tunnel content-type:", upstream.headers.get("content-type"));
+    console.log("Tunnel content-length:", upstream.headers.get("content-length"));
     if (!upstream.ok) {
       return new Response(`Cobalt tunnel error: ${upstream.status}`, { status: upstream.status });
     }
