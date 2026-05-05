@@ -89,7 +89,13 @@ exports.handler = async (event) => {
         (data.status === "tunnel" || data.status === "redirect" || data.status === "stream") &&
         data.url
       ) {
-        formats.push({ type: "video", quality: "Best quality", url: data.url });
+        formats.push({
+          type: "video",
+          quality: "Best quality",
+          url: data.url,
+          tunnel: data.status === "tunnel" || data.status === "stream",
+          filename: data.filename || null,
+        });
         anySuccess = true;
       } else if (data.status === "picker" && Array.isArray(data.picker)) {
         for (const item of data.picker) {
@@ -98,6 +104,8 @@ exports.handler = async (event) => {
               type: item.type === "audio" ? "audio" : "video",
               quality: item.quality || "video",
               url: item.url,
+              tunnel: false,
+              filename: data.filename || null,
             });
             anySuccess = true;
           }
@@ -122,7 +130,13 @@ exports.handler = async (event) => {
         data.url
       ) {
         if (!formats.find((f) => f.url === data.url)) {
-          formats.push({ type: "video", quality: "720p", url: data.url });
+          formats.push({
+            type: "video",
+            quality: "720p",
+            url: data.url,
+            tunnel: data.status === "tunnel" || data.status === "stream",
+            filename: data.filename || null,
+          });
           anySuccess = true;
         }
       }
@@ -145,7 +159,13 @@ exports.handler = async (event) => {
         data.url
       ) {
         if (!formats.find((f) => f.url === data.url)) {
-          formats.push({ type: "audio", quality: "MP3 audio", url: data.url });
+          formats.push({
+            type: "audio",
+            quality: "MP3 audio",
+            url: data.url,
+            tunnel: data.status === "tunnel" || data.status === "stream",
+            filename: data.filename || null,
+          });
           anySuccess = true;
         }
       }
