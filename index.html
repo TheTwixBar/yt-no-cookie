@@ -700,7 +700,7 @@
     list.appendChild(lbl);
 
     items.forEach(f => {
-      const proxyUrl = `/.netlify/edge-functions/proxy?url=${encodeURIComponent(f.url)}&filename=${encodeURIComponent(f.filename || f.quality)}`;
+      const proxyUrl = `/download-proxy?url=${encodeURIComponent(f.url)}&filename=${encodeURIComponent(f.filename || f.quality)}`;
       const row = document.createElement('div');
       row.className = 'dl-format';
       row.innerHTML = `
