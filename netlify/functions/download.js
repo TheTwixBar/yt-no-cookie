@@ -17,98 +17,89 @@ exports.handler = async (event) => {
 
   const COBALT = "https://cobalt.meowing.de";
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
-  // Request multiple quality options from cobalt
-  const qualities = ["max", "1080", "720", "480", "360"];
   const formats = [];
   let title = null;
 
-  for (const quality of qualities) {
-    try {
-      const res = await fetch(`${COBALT}/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          url: videoUrl,
-          videoQuality: quality,
-          filenameStyle: "pretty",
-        }),
-        signal: AbortSignal.timeout(10000),
-      });
-
-      if (!res.ok) continue;
-      const data = await res.json();
-
-      if (data.status === "error") continue;
-
-      // "stream" or "redirect" = single download link
-      if (
-        (data.status === "stream" || data.status === "redirect") &&
-        data.url
-      ) {
-        // Avoid duplicates (cobalt may return same URL for close qualities)
-        if (!formats.find((f) => f.url === data.url)) {
-          formats.push({
-            type: "video",
-            quality: quality === "max" ? "Best available" : `${quality}p`,
-            url: data.url,
-          });
-        }
-      }
-
-      // "picker" = cobalt returned multiple streams (e.g. separate video+audio)
-      if (data.status === "picker" && Array.isArray(data.picker)) {
-        for (const item of data.picker) {
-          if (!item.url) continue;
-          if (!formats.find((f) => f.url === item.url)) {
-            formats.push({
-              type: item.type === "audio" ? "audio" : "video",
-              quality: item.quality || (quality === "max" ? "Best available" : `${quality}p`),
-              url: item.url,
-            });
-          }
-        }
-      }
-
-      if (!title && data.filename) {
-        title = data.filename.replace(/\.[^.]+$/, "");
-      }
-    } catch (_) {
-      continue;
-    }
-  }
-
-  // Also fetch an audio-only option
-  try {
+  async function cobaltRequest(body) {
     const res = await fetch(`${COBALT}/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/json",
+        "Accept": "application/json",
       },
-      body: JSON.stringify({
-        url: videoUrl,
-        downloadMode: "audio",
-        audioFormat: "mp3",
-        filenameStyle: "pretty",
-      }),
-      signal: AbortSignal.timeout(10000),
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(12000),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  function extractFilename(data) {
+    if (data.filename) return data.filename.replace(/\.[^.]+$/, "");
+    return null;
+  }
+
+  // --- video (best quality, h264 for broad compatibility) ---
+  try {
+    const data = await cobaltRequest({
+      url: videoUrl,
+      videoQuality: "max",
+      youtubeVideoCodec: "h264",
+      downloadMode: "auto",
+      filenameStyle: "pretty",
     });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (
-        (data.status === "stream" || data.status === "redirect") &&
-        data.url &&
-        !formats.find((f) => f.url === data.url)
-      ) {
-        formats.push({ type: "audio", quality: "MP3 audio", url: data.url });
-        if (!title && data.filename) {
-          title = data.filename.replace(/\.[^.]+$/, "");
+    if (!title) title = extractFilename(data);
+
+    if ((data.status === "tunnel" || data.status === "redirect" || data.status === "stream") && data.url) {
+      formats.push({ type: "video", quality: "Best quality", url: data.url });
+    } else if (data.status === "picker" && Array.isArray(data.picker)) {
+      for (const item of data.picker) {
+        if (item.url) {
+          formats.push({
+            type: item.type === "audio" ? "audio" : "video",
+            quality: item.quality || "video",
+            url: item.url,
+          });
         }
+      }
+    }
+  } catch (_) {}
+
+  // --- 720p fallback ---
+  try {
+    const data = await cobaltRequest({
+      url: videoUrl,
+      videoQuality: "720",
+      youtubeVideoCodec: "h264",
+      downloadMode: "auto",
+      filenameStyle: "pretty",
+    });
+
+    if (!title) title = extractFilename(data);
+
+    if ((data.status === "tunnel" || data.status === "redirect" || data.status === "stream") && data.url) {
+      if (!formats.find((f) => f.url === data.url)) {
+        formats.push({ type: "video", quality: "720p", url: data.url });
+      }
+    }
+  } catch (_) {}
+
+  // --- audio only (mp3) ---
+  try {
+    const data = await cobaltRequest({
+      url: videoUrl,
+      downloadMode: "audio",
+      audioFormat: "mp3",
+      audioBitrate: "128",
+      filenameStyle: "pretty",
+    });
+
+    if (!title) title = extractFilename(data);
+
+    if ((data.status === "tunnel" || data.status === "redirect" || data.status === "stream") && data.url) {
+      if (!formats.find((f) => f.url === data.url)) {
+        formats.push({ type: "audio", quality: "MP3 audio", url: data.url });
       }
     }
   } catch (_) {}
