@@ -8,80 +8,124 @@ exports.handler = async (event) => {
 
   const videoId = event.queryStringParameters?.v;
   if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid or missing video ID" }) };
+    return {
+      statusCode: 400,
+      headers,
+      body: JSON.stringify({ error: "Invalid or missing video ID" }),
+    };
   }
 
-  // Try a few public Invidious instances in case one is down
-  const instances = [
-    "https://invidious.privacyredirect.com",
-    "https://inv.nadeko.net",
-    "https://invidious.nerdvpn.de",
-  ];
+  const COBALT = "https://cobalt.meowing.de";
+  const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
-  for (const instance of instances) {
+  // Request multiple quality options from cobalt
+  const qualities = ["max", "1080", "720", "480", "360"];
+  const formats = [];
+  let title = null;
+
+  for (const quality of qualities) {
     try {
-      const res = await fetch(`${instance}/api/v1/videos/${videoId}`, {
-        headers: { "User-Agent": "cookiefree/1.0" },
-        signal: AbortSignal.timeout(8000),
+      const res = await fetch(`${COBALT}/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          url: videoUrl,
+          videoQuality: quality,
+          filenameStyle: "pretty",
+        }),
+        signal: AbortSignal.timeout(10000),
       });
 
       if (!res.ok) continue;
       const data = await res.json();
 
-      const formats = [];
+      if (data.status === "error") continue;
 
-      // Combined adaptive formats
-      for (const f of (data.adaptiveFormats || [])) {
-        if (!f.url) continue;
-        formats.push({
-          format_id: f.itag?.toString() || "",
-          ext: f.container || f.type?.split("/")?.[1]?.split(";")?.[0] || "mp4",
-          quality: f.qualityLabel || f.audioQuality || "",
-          resolution: f.qualityLabel || (f.audioQuality ? "audio only" : ""),
-          filesize: f.clen ? parseInt(f.clen) : null,
-          vcodec: f.encoding || (f.qualityLabel ? "h264" : "none"),
-          acodec: f.audioQuality ? "aac" : "none",
-          url: f.url,
-          has_video: !!f.qualityLabel,
-          has_audio: !!f.audioQuality,
-        });
+      // "stream" or "redirect" = single download link
+      if (
+        (data.status === "stream" || data.status === "redirect") &&
+        data.url
+      ) {
+        // Avoid duplicates (cobalt may return same URL for close qualities)
+        if (!formats.find((f) => f.url === data.url)) {
+          formats.push({
+            type: "video",
+            quality: quality === "max" ? "Best available" : `${quality}p`,
+            url: data.url,
+          });
+        }
       }
 
-      // formatStreams = combined video+audio
-      for (const f of (data.formatStreams || [])) {
-        if (!f.url) continue;
-        formats.push({
-          format_id: f.itag?.toString() || "",
-          ext: f.container || "mp4",
-          quality: f.qualityLabel || "",
-          resolution: f.qualityLabel || "",
-          filesize: null,
-          vcodec: "h264",
-          acodec: "aac",
-          url: f.url,
-          has_video: true,
-          has_audio: true,
-        });
+      // "picker" = cobalt returned multiple streams (e.g. separate video+audio)
+      if (data.status === "picker" && Array.isArray(data.picker)) {
+        for (const item of data.picker) {
+          if (!item.url) continue;
+          if (!formats.find((f) => f.url === item.url)) {
+            formats.push({
+              type: item.type === "audio" ? "audio" : "video",
+              quality: item.quality || (quality === "max" ? "Best available" : `${quality}p`),
+              url: item.url,
+            });
+          }
+        }
       }
 
-      formats.sort((a, b) => {
-        if (a.has_video && a.has_audio && !(b.has_video && b.has_audio)) return -1;
-        if (b.has_video && b.has_audio && !(a.has_video && a.has_audio)) return 1;
-        return (parseInt(b.resolution) || 0) - (parseInt(a.resolution) || 0);
-      });
+      if (!title && data.filename) {
+        title = data.filename.replace(/\.[^.]+$/, "");
+      }
+    } catch (_) {
+      continue;
+    }
+  }
 
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({ title: data.title, formats }),
-      };
+  // Also fetch an audio-only option
+  try {
+    const res = await fetch(`${COBALT}/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        url: videoUrl,
+        downloadMode: "audio",
+        audioFormat: "mp3",
+        filenameStyle: "pretty",
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
 
-    } catch (_) { continue; }
+    if (res.ok) {
+      const data = await res.json();
+      if (
+        (data.status === "stream" || data.status === "redirect") &&
+        data.url &&
+        !formats.find((f) => f.url === data.url)
+      ) {
+        formats.push({ type: "audio", quality: "MP3 audio", url: data.url });
+        if (!title && data.filename) {
+          title = data.filename.replace(/\.[^.]+$/, "");
+        }
+      }
+    }
+  } catch (_) {}
+
+  if (!formats.length) {
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        error: "Download unavailable. cobalt.meowing.de could not process this video.",
+      }),
+    };
   }
 
   return {
-    statusCode: 500,
+    statusCode: 200,
     headers,
-    body: JSON.stringify({ error: "All download sources failed. Try again later." }),
+    body: JSON.stringify({ title: title || videoId, formats }),
   };
 };
