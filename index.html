@@ -184,8 +184,9 @@
     .dl-format-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .dl-format-res { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text); }
     .dl-format-meta { font-family: 'Space Mono', monospace; font-size: 10px; color: #555; }
-    .dl-format-link { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; color: #000; background: var(--accent); padding: 5px 12px; border-radius: 2px; text-decoration: none; white-space: nowrap; flex-shrink: 0; transition: background 0.15s; }
+    .dl-format-link { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; color: #000; background: var(--accent); padding: 5px 12px; border-radius: 2px; text-decoration: none; white-space: nowrap; flex-shrink: 0; transition: background 0.15s; border: none; cursor: pointer; }
     .dl-format-link:hover { background: #d4eb00; }
+    .dl-format-link:disabled { opacity: 0.5; cursor: not-allowed; }
     .dl-section-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1px; color: #444; text-transform: uppercase; margin: 12px 0 6px; }
     .dl-note { margin-top: 14px; font-size: 11px; color: #444; line-height: 1.5; }
 
@@ -680,6 +681,24 @@
     return (bytes / 1e3).toFixed(0) + ' KB';
   }
 
+ async function triggerDownload(url, filename) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const objUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objUrl;
+      a.download = filename || 'download';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(objUrl), 10000);
+    } catch (err) {
+      alert('Download failed: ' + err.message);
+    }
+  }
+
  function renderFormats(formats) {
   const list = document.getElementById('dlFormatList');
   list.innerHTML = '';
@@ -702,13 +721,27 @@
     items.forEach(f => {
       const row = document.createElement('div');
       row.className = 'dl-format';
-      row.innerHTML = `
-        <div class="dl-format-info">
-          <span class="dl-format-res">${f.quality}</span>
-          <span class="dl-format-meta">video + audio merged</span>
-        </div>
-        <a class="dl-format-link" href="${f.tunnel ? `/.netlify/functions/proxy?url=${encodeURIComponent(f.url)}&filename=${encodeURIComponent(f.filename || f.quality)}` : f.url}" download target="_blank" rel="noopener">↓ GET</a>
+
+      const btn = document.createElement('button');
+      btn.className = 'dl-format-link';
+      btn.textContent = '↓ GET';
+      btn.addEventListener('click', async () => {
+        btn.textContent = '…';
+        btn.disabled = true;
+        await triggerDownload(f.url, f.filename || f.quality);
+        btn.textContent = '↓ GET';
+        btn.disabled = false;
+      });
+
+      const info = document.createElement('div');
+      info.className = 'dl-format-info';
+      info.innerHTML = `
+        <span class="dl-format-res">${f.quality}</span>
+        <span class="dl-format-meta">video + audio merged</span>
       `;
+
+      row.appendChild(info);
+      row.appendChild(btn);
       list.appendChild(row);
     });
   }
