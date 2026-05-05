@@ -4,9 +4,6 @@
 [functions]
   directory = "netlify/functions"
 
-[edge_functions]
-  directory = "netlify/edge-functions"
-
 [[edge_functions]]
   function = "proxy"
   path = "/.netlify/edge-functions/proxy"
