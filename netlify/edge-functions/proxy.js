@@ -58,4 +58,4 @@ export default async (request) => {
   }
 };
 
-export const config = { path: "/.netlify/edge-functions/proxy" };
+export const config = { path: "/download-proxy" };
