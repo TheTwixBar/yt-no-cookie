@@ -6,7 +6,7 @@
 
 [[edge_functions]]
   function = "proxy"
-  path = "/.netlify/edge-functions/proxy"
+  path = "/download-proxy"
 
 [[headers]]
   for = "/*"
