@@ -877,27 +877,39 @@
   }
 
   /* ─── Auto-advance queue watcher ───
-     YouTube's iframe postMessage API sends -1=unstarted, 1=playing, 0=ended, 2=paused, 3=buffering, 5=cued
-     We listen for state=0 (ended) and auto-play the next item.
+     Uses the video's duration from the API to set a timer.
+     When the timer fires, auto-play the next queue item.
+     Timer is cancelled if the user manually loads a different video.
   */
+  let _advanceDuration = null; // duration in seconds of current video
+
   function startAdvanceWatcher() {
     stopAdvanceWatcher();
-    window.addEventListener('message', _onYTMessage);
+    if (!currentVideoId || !_advanceDuration) return;
+    // Time remaining = duration - seconds already elapsed (start offset) - small buffer
+    const elapsed = playerStartTime || 0;
+    const remaining = Math.max((_advanceDuration - elapsed) * 1000 - 500, 1000);
+    _advanceTimer = setTimeout(() => {
+      if (playerOpts.queueAdvance && currentVideoId) playNextInQueue();
+    }, remaining);
   }
+
   function stopAdvanceWatcher() {
-    window.removeEventListener('message', _onYTMessage);
     if (_advanceTimer) { clearTimeout(_advanceTimer); _advanceTimer = null; }
   }
-  function _onYTMessage(e) {
-    // YouTube sends postMessage from youtube-nocookie.com
+
+  async function fetchDurationAndStartWatcher(videoId) {
     try {
-      const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-      if (data?.event === 'onStateChange' && data?.info === 0) {
-        // Video ended — delay briefly then play next in queue
-        _advanceTimer = setTimeout(() => {
-          if (playerOpts.queueAdvance) playNextInQueue();
-        }, 1200);
-      }
+      const res  = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoId}&key=${API_KEY}`);
+      const data = await res.json();
+      const iso  = data.items?.[0]?.contentDetails?.duration;
+      if (!iso) return;
+      // Parse ISO 8601 duration to seconds
+      const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+      if (!m) return;
+      _advanceDuration = (parseInt(m[1]||0)*3600) + (parseInt(m[2]||0)*60) + parseInt(m[3]||0);
+      // Only arm if this video is still the current one
+      if (videoId === currentVideoId && playerOpts.queueAdvance) startAdvanceWatcher();
     } catch {}
   }
 
