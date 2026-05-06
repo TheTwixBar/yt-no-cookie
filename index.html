@@ -422,9 +422,8 @@
         <div class="ch-sort-row">
           <span class="ch-sort-label">SORT:</span>
           <button class="ch-sort-btn active" onclick="chSort('date')">NEWEST</button>
-          <button class="ch-sort-btn" onclick="chSort('viewCount')">MOST VIEWED</button>
-          <button class="ch-sort-btn" onclick="chSort('relevance')">RELEVANCE</button>
-          <button class="ch-sort-btn" onclick="chSort('rating')">TOP RATED</button>
+          <button class="ch-sort-btn" onclick="chSort('popular')">POPULAR</button>
+          <button class="ch-sort-btn" onclick="chSort('oldest')">OLDEST</button>
         </div>
         <div class="cards-grid" id="chGrid"></div>
         <div id="chMore" style="display:none;margin-top:16px;">
@@ -469,10 +468,6 @@
           <button class="action-btn" onclick="copyTimestampLink()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             + TIMESTAMP
-          </button>
-          <button class="action-btn" onclick="requestPiP()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><rect x="12" y="10" width="8" height="5" rx="1"/></svg>
-            PIP
           </button>
           <button class="dl-btn" onclick="openDownload()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -859,7 +854,7 @@
   async function chSort(order) {
     chState.order = order; chState.nextPageToken = null;
     document.querySelectorAll('.ch-sort-btn').forEach(b => {
-      const map = { date:'NEWEST', viewCount:'MOST VIEWED', relevance:'RELEVANCE', rating:'TOP RATED' };
+      const map = { date:'NEWEST', popular:'POPULAR', oldest:'OLDEST' };
       b.classList.toggle('active', b.textContent.trim() === map[order]);
     });
     document.getElementById('chGrid').innerHTML = '';
@@ -874,28 +869,9 @@
     const grid = document.getElementById('chGrid'), moreBtn = document.getElementById('chMore');
     if (!append) { grid.innerHTML = ''; moreBtn.style.display = 'none'; }
     try {
-      if (chState.order === 'date' && chState.uploadsPlaylistId) {
-        const params = new URLSearchParams({ part: 'snippet', playlistId: chState.uploadsPlaylistId, maxResults: 24, key: API_KEY() });
-        if (append && chState.nextPageToken) params.set('pageToken', chState.nextPageToken);
-        const res = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?${params}`);
-        const data = await res.json();
-        if (data.error) throw new Error(data.error.message);
-        chState.nextPageToken = data.nextPageToken || null;
-        const items = (data.items || []).filter(i => i.snippet?.resourceId?.kind === 'youtube#video');
-        const videoIds = items.map(i => i.snippet.resourceId.videoId);
-        let statsMap = {};
-        if (videoIds.length) {
-          const sr = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoIds.join(',')}&key=${API_KEY()}`);
-          const sd = await sr.json();
-          (sd.items || []).forEach(v => { statsMap[v.id] = { duration: parseDuration(v.contentDetails?.duration), views: v.statistics?.viewCount, title: v.snippet?.title, channel: v.snippet?.channelTitle, channelId: v.snippet?.channelId, thumb: v.snippet?.thumbnails?.medium?.url || '' }; });
-        }
-        const fakeItems = videoIds.filter(id => statsMap[id]).map(id => {
-          const s = statsMap[id];
-          return { id: { videoId: id }, snippet: { title: s.title, channelTitle: s.channel, channelId: s.channelId || chState.channelId, thumbnails: { medium: { url: s.thumb } } } };
-        });
-        renderResults(fakeItems, append, statsMap, grid);
-      } else {
-        const params = new URLSearchParams({ part: 'snippet', channelId: chState.channelId, type: 'video', maxResults: 24, order: chState.order, key: API_KEY() });
+      // For popular, use search API with viewCount order
+      if (chState.order === 'popular') {
+        const params = new URLSearchParams({ part: 'snippet', channelId: chState.channelId, type: 'video', maxResults: 24, order: 'viewCount', key: API_KEY() });
         if (append && chState.nextPageToken) params.set('pageToken', chState.nextPageToken);
         const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
         const data = await res.json();
@@ -908,11 +884,35 @@
           const sd = await sr.json();
           (sd.items || []).forEach(v => { statsMap[v.id] = { duration: parseDuration(v.contentDetails?.duration), views: v.statistics?.viewCount }; });
         }
-        renderResults(data.items, append, statsMap, grid);
+        renderResults(data.items || [], append, statsMap, grid);
+      } else {
+        // date (newest) and oldest both use the uploads playlist; oldest reverses client-side page approach
+        if (!chState.uploadsPlaylistId) throw new Error('Uploads playlist unavailable');
+        const params = new URLSearchParams({ part: 'snippet', playlistId: chState.uploadsPlaylistId, maxResults: 24, key: API_KEY() });
+        if (append && chState.nextPageToken) params.set('pageToken', chState.nextPageToken);
+        const res = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?${params}`);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+        chState.nextPageToken = data.nextPageToken || null;
+        let items = (data.items || []).filter(i => i.snippet?.resourceId?.kind === 'youtube#video');
+        if (chState.order === 'oldest') items = items.reverse();
+        const videoIds = items.map(i => i.snippet.resourceId.videoId);
+        let statsMap = {};
+        if (videoIds.length) {
+          const sr = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoIds.join(',')}&key=${API_KEY()}`);
+          const sd = await sr.json();
+          (sd.items || []).forEach(v => { statsMap[v.id] = { duration: parseDuration(v.contentDetails?.duration), views: v.statistics?.viewCount, title: v.snippet?.title, channel: v.snippet?.channelTitle, channelId: v.snippet?.channelId, thumb: v.snippet?.thumbnails?.medium?.url || '' }; });
+        }
+        const fakeItems = videoIds.filter(id => statsMap[id]).map(id => {
+          const s = statsMap[id];
+          return { id: { videoId: id }, snippet: { title: s.title, channelTitle: s.channel, channelId: s.channelId || chState.channelId, thumbnails: { medium: { url: s.thumb } } } };
+        });
+        renderResults(fakeItems, append, statsMap, grid);
       }
       moreBtn.style.display = chState.nextPageToken ? 'block' : 'none';
     } catch(e) { errEl.textContent = `⚠ ${e.message}`; errEl.classList.add('show'); }
   }
+
 
   /* ─── Video ID + timestamp extraction ─── */
   function extractVideoInfo(raw) {
@@ -1101,20 +1101,18 @@
 
   function copyShareLink() {
     if (!currentVideoId) return;
-    const url = new URL(window.location.href);
-    url.searchParams.set('v', currentVideoId);
-    url.searchParams.delete('t');
-    navigator.clipboard.writeText(url.toString()).then(() => showToast('Link copied!')).catch(() => showToast('Copy failed'));
+    const url = `https://www.youtube.com/watch?v=${currentVideoId}`;
+    navigator.clipboard.writeText(url).then(() => showToast('Link copied!')).catch(() => showToast('Copy failed'));
   }
 
   function copyTimestampLink() {
     if (!currentVideoId) return;
     const elapsed = playerLoadTime ? Math.floor((Date.now() - playerLoadTime) / 1000) : 0;
     const start   = (playerStartTime || 0) + elapsed;
-    const url     = new URL(window.location.href);
-    url.searchParams.set('v', currentVideoId);
-    if (start > 0) url.searchParams.set('t', start);
-    navigator.clipboard.writeText(url.toString()).then(() => showToast(`Copied at ${start}s`)).catch(() => showToast('Copy failed'));
+    const url     = start > 0
+      ? `https://www.youtube.com/watch?v=${currentVideoId}&t=${start}`
+      : `https://www.youtube.com/watch?v=${currentVideoId}`;
+    navigator.clipboard.writeText(url).then(() => showToast(`Copied at ${start}s`)).catch(() => showToast('Copy failed'));
   }
 
   /* ─── Picture-in-Picture ─── */
@@ -1208,8 +1206,6 @@
       'f':'toggleFavorite', 'F':'toggleFavorite',
       'c':'copyShareLink',  'C':'copyShareLink',
       'l':'loopToggle',     'L':'loopToggle',
-      'a':'autoToggle',     'A':'autoToggle',
-      'p':'requestPiP',     'P':'requestPiP',
       't':'toggleTheme',    'T':'toggleTheme',
       'g':'focusUrl',       'G':'focusUrl',
       's':'focusSearch',    'S':'focusSearch',
