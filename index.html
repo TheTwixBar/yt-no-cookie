@@ -379,6 +379,7 @@
           <button class="filter-btn apikey-btn active" onclick="setApiKey(0,this)">API KEY 1</button>
           <button class="filter-btn apikey-btn" onclick="setApiKey(1,this)">API KEY 2</button>
           <button class="filter-btn apikey-btn" onclick="setApiKey(2,this)">API KEY 3</button>
+          <button class="filter-btn apikey-btn" onclick="setApiKey(3,this)">API KEY 4</button>
           <span class="filter-label" style="margin-left:4px;">DURATION:</span>
           <button class="filter-btn active" data-filter="dur" data-val="" onclick="setFilter('dur','',this)">ANY</button>
           <button class="filter-btn" data-filter="dur" data-val="short" onclick="setFilter('dur','short',this)">&lt;4m</button>
@@ -560,7 +561,7 @@
 <input type="file" id="importFileInput" accept=".json" onchange="importHistory(event)"/>
 
 <script>
-  const API_KEYS     = ['AIzaSyBPu6dYKeAo09dAGAOINvvSjbpd_xdENmg','AIzaSyC3g27Ps83Fr37qus5cnXzlm2z7sipJkgc','AIzaSyB7VR1MT4rj0Il5ELNsvC6RI-UO_RIG9Co'];
+  const API_KEYS     = ['AIzaSyBPu6dYKeAo09dAGAOINvvSjbpd_xdENmg','AIzaSyC3g27Ps83Fr37qus5cnXzlm2z7sipJkgc','AIzaSyB7VR1MT4rj0Il5ELNsvC6RI-UO_RIG9Co','AIzaSyBawd-6oGh6QP2KPcygvAL6hXgzkkpcLFA'];
   let   activeKeyIdx = 0;
   const API_KEY      = () => API_KEYS[activeKeyIdx];
   function setApiKey(idx, el) {
