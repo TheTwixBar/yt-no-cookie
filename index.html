@@ -360,7 +360,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           HIDE RELATED
         </button>
-        <button class="opt-toggle" id="opt-queue-advance" onclick="toggleOpt('queueAdvance')">
+        <button class="opt-toggle" id="opt-queueAdvance" onclick="toggleOpt('queueAdvance')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/><line x1="19" y1="3" x2="19" y2="21"/></svg>
           AUTO-NEXT
         </button>
@@ -606,9 +606,13 @@
     playerOpts[opt] = !playerOpts[opt];
     document.getElementById('opt-' + opt)?.classList.toggle('on', playerOpts[opt]);
     if (opt === 'queueAdvance') {
-      if (playerOpts.queueAdvance) startAdvanceWatcher();
-      else stopAdvanceWatcher();
-      showToast(playerOpts.queueAdvance ? 'Auto-next ON' : 'Auto-next OFF');
+      if (playerOpts.queueAdvance) {
+        showToast('Auto-next ON');
+        if (currentVideoId) fetchDurationAndStartWatcher(currentVideoId);
+      } else {
+        stopAdvanceWatcher();
+        showToast('Auto-next OFF');
+      }
       return;
     }
     if (currentVideoId) reloadPlayer();
@@ -877,21 +881,25 @@
   }
 
   /* ─── Auto-advance queue watcher ───
-     Uses the video's duration from the API to set a timer.
-     When the timer fires, auto-play the next queue item.
-     Timer is cancelled if the user manually loads a different video.
+     Fetches the video's duration from the API, then sets a setTimeout
+     for the remaining playback time. Cancelled whenever a new video loads.
   */
   let _advanceDuration = null; // duration in seconds of current video
 
   function startAdvanceWatcher() {
     stopAdvanceWatcher();
     if (!currentVideoId || !_advanceDuration) return;
-    // Time remaining = duration - seconds already elapsed (start offset) - small buffer
-    const elapsed = playerStartTime || 0;
-    const remaining = Math.max((_advanceDuration - elapsed) * 1000 - 500, 1000);
+    // Wall-clock seconds since the iframe was created
+    const wallElapsed = playerLoadTime ? (Date.now() - playerLoadTime) / 1000 : 0;
+    // Start offset in the video (from ?t= param)
+    const startOffset = playerStartTime || 0;
+    // How many seconds of the video have likely played so far
+    const videoElapsed = startOffset + wallElapsed;
+    // Remaining time with a small 1s buffer
+    const remainingMs = Math.max((_advanceDuration - videoElapsed) * 1000 - 1000, 500);
     _advanceTimer = setTimeout(() => {
       if (playerOpts.queueAdvance && currentVideoId) playNextInQueue();
-    }, remaining);
+    }, remainingMs);
   }
 
   function stopAdvanceWatcher() {
@@ -904,7 +912,6 @@
       const data = await res.json();
       const iso  = data.items?.[0]?.contentDetails?.duration;
       if (!iso) return;
-      // Parse ISO 8601 duration to seconds
       const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
       if (!m) return;
       _advanceDuration = (parseInt(m[1]||0)*3600) + (parseInt(m[2]||0)*60) + parseInt(m[3]||0);
@@ -1141,6 +1148,10 @@
     const { id: videoId, start } = parsed;
     playerStartTime = start;
 
+    // Cancel any running auto-advance timer for the previous video
+    stopAdvanceWatcher();
+    _advanceDuration = null;
+
     const existing = frame.querySelector('iframe');
     if (existing) existing.remove();
     document.getElementById('placeholder').style.display = 'none';
@@ -1163,6 +1174,9 @@
     if (!knownTitle) {
       fetchAndCacheTitle(videoId).then(title => { if (title) saveToHistory(videoId, title); });
     }
+
+    // Arm auto-advance timer (fetches duration from API, then sets setTimeout)
+    if (playerOpts.queueAdvance) fetchDurationAndStartWatcher(videoId);
   }
 
   /* ─── Keyboard shortcuts ─── */
