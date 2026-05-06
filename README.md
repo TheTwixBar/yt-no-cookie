@@ -70,27 +70,17 @@ Search requires a free YouTube Data API v3 key. The app supports two keys and le
 
 1. Go to [console.cloud.google.com](https://console.cloud.google.com)
 2. Create a new project
-3. Navigate to **APIs & Services → Library**, search for **YouTube Data API v3**, and enable it
+3. Navigate to **APIs & Services, then Library**, search for **YouTube Data API v3**, and enable it
 4. Go to **APIs & Services → Credentials → Create Credentials → API Key**
 5. Copy the key
 
 ### Free quota
 
-The free tier grants **10,000 units/day**. Each search costs 100 units (~100 searches/day). Having two keys effectively doubles your daily limit.
+The free tier grants **10,000 units/day**. Each search costs 100 units (so, 100 searches/day). Having two keys effectively doubles your daily limit.
 
 ### Restricting your key (recommended)
 
 In **Credentials → your key → Application restrictions**, add your site's domain (e.g. `https://youtubenocookie.netlify.app`) to prevent unauthorized use.
-
-### Adding your keys to the app
-
-At the top of the `<script>` block in `index.html`:
-
-```js
-const API_KEYS = ['YOUR_FIRST_KEY', 'YOUR_SECOND_KEY'];
-```
-
-Keys are never exposed in the page UI — the selector only shows "API Key 1" and "API Key 2".
 
 ---
 
