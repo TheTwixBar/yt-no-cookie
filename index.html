@@ -152,8 +152,9 @@
     .result-title { font-size: 12px; color: var(--text); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px; }
     .result-channel { font-family: 'Space Mono', monospace; font-size: 10px; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; transition: color 0.1s; }
     .result-channel:hover { color: var(--accent); }
+
     /* ── Channel Page ── */
-    .ch-banner { width: 100%; height: 140px; object-fit: cover; border-radius: var(--radius); background: var(--surface2); display: block; }
+    .ch-banner { width: 100%; height: 140px; object-fit: cover; border-radius: var(--radius); background: var(--surface2); display: block; margin-bottom: 0; }
     .ch-banner-placeholder { width: 100%; height: 140px; background: linear-gradient(135deg, var(--surface2) 0%, var(--border) 100%); border-radius: var(--radius); }
     .ch-header { display: flex; align-items: flex-start; gap: 16px; margin: 16px 0 20px; }
     .ch-avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; background: var(--surface2); flex-shrink: 0; border: 2px solid var(--border); }
@@ -178,6 +179,25 @@
     .search-more button { background: none; border: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; padding: 9px 20px; border-radius: var(--radius); cursor: pointer; letter-spacing: 1px; transition: border-color 0.15s, color 0.15s; }
     .search-more button:hover { border-color: var(--accent); color: var(--accent); }
 
+    /* QUEUE TAB */
+    .queue-tab-inner { padding: 4px 0; }
+    .queue-tab-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .section-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+    .text-btn { font-family: 'Space Mono', monospace; font-size: 10px; color: #444; background: none; border: none; cursor: pointer; letter-spacing: 1px; transition: color 0.15s; }
+    .text-btn:hover { color: var(--accent2); }
+    .text-btn.accent:hover { color: var(--accent); }
+    .queue-list { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .queue-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+    .queue-item:last-child { border-bottom: none; }
+    .queue-item:hover { background: var(--surface2); }
+    .queue-item.active { border-left: 3px solid var(--accent); }
+    .queue-num { font-family: 'Space Mono', monospace; font-size: 10px; color: #444; width: 18px; text-align: center; flex-shrink: 0; }
+    .queue-thumb { width: 56px; height: 32px; object-fit: cover; border-radius: 2px; background: var(--surface2); flex-shrink: 0; }
+    .queue-info { flex: 1; min-width: 0; }
+    .queue-item-title { font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .queue-item-id { font-family: 'Space Mono', monospace; font-size: 10px; color: #555; }
+    .queue-remove { background: none; border: none; color: #444; cursor: pointer; font-size: 11px; flex-shrink: 0; transition: color 0.15s; padding: 3px 5px; }
+    .queue-remove:hover { color: var(--accent2); }
     .empty-msg { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--muted); padding: 32px; text-align: center; border: 1px solid var(--border); border-radius: var(--radius); }
 
     /* PLAYER */
@@ -226,6 +246,18 @@
     .playback-hint { margin-top: 8px; font-family: 'Space Mono', monospace; font-size: 10px; color: #333; letter-spacing: 0.5px; text-align: center; }
     .playback-hint kbd { display: inline-block; background: var(--surface2); border: 1px solid var(--border); border-radius: 2px; padding: 1px 5px; margin: 0 2px; color: #555; font-size: 9px; }
 
+    /* SHORTCUTS PANEL */
+    .overlay-panel { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 600; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+    .overlay-panel.show { display: flex; }
+    .overlay-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 380px; margin: 16px; padding: 24px; animation: fadeUp 0.2s ease both; }
+    .overlay-title { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+    .overlay-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; }
+    .overlay-close:hover { color: var(--accent2); }
+    .shortcut-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .shortcut-row:last-child { border-bottom: none; }
+    .shortcut-key { font-family: 'Space Mono', monospace; font-size: 11px; background: var(--surface2); border: 1px solid var(--border); border-radius: 2px; padding: 2px 8px; color: var(--text); }
+    .shortcut-desc { font-size: 12px; color: var(--muted); }
+    .shortcut-section { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 2px; color: #333; text-transform: uppercase; padding: 12px 0 4px; }
 
     /* DOWNLOAD MODAL */
     .dl-modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
@@ -301,6 +333,11 @@
           <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
         </svg>
       </button>
+      <button class="icon-btn" onclick="showShortcuts()" title="Keyboard shortcuts (?)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/>
+        </svg>
+      </button>
     </div>
   </header>
 
@@ -315,6 +352,7 @@
       <button class="tab-btn active" onclick="switchTab('play')">▶ PLAY</button>
       <button class="tab-btn" onclick="switchTab('search')">⌕ SEARCH</button>
       <button class="tab-btn" onclick="switchTab('channel')" id="tab-btn-channel" style="display:none">⊙ CHANNEL</button>
+      <button class="tab-btn" onclick="switchTab('queue')">≡ QUEUE</button>
       <button class="tab-btn" onclick="switchTab('favorites')">★ FAVORITES</button>
     </div>
 
@@ -343,6 +381,10 @@
         <button class="opt-toggle on" id="opt-rel" onclick="toggleOpt('rel')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           HIDE RELATED
+        </button>
+        <button class="opt-toggle" id="opt-queueAdvance" onclick="toggleOpt('queueAdvance')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/><line x1="19" y1="3" x2="19" y2="21"/></svg>
+          AUTO-NEXT
         </button>
       </div>
     </div>
@@ -382,6 +424,16 @@
       </div>
     </div>
 
+    <!-- TAB: QUEUE -->
+    <div class="tab-panel" id="tab-queue">
+      <div class="queue-tab-inner">
+        <div class="queue-tab-header">
+          <span class="section-label">Play Queue</span>
+          <button class="text-btn" onclick="clearQueue()">CLEAR QUEUE</button>
+        </div>
+        <div id="queueList"></div>
+      </div>
+    </div>
 
     <!-- TAB: FAVORITES -->
     <div class="tab-panel" id="tab-favorites">
@@ -424,7 +476,6 @@
       </div>
     </div>
 
-
     <!-- PLAYER -->
     <div class="player-section">
       <div class="player-label-row">
@@ -452,6 +503,10 @@
           <button class="action-btn" id="favBtn" onclick="toggleFavorite()">
             <svg id="favIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             FAVE
+          </button>
+          <button class="action-btn" onclick="addCurrentToQueue()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            QUEUE
           </button>
           <button class="action-btn" onclick="copyShareLink()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
@@ -525,6 +580,35 @@
   </div>
 </div>
 
+<!-- KEYBOARD SHORTCUTS PANEL -->
+<div class="overlay-panel" id="shortcutsPanel" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="overlay-box">
+    <div class="overlay-title">
+      <span>Keyboard Shortcuts</span>
+      <button class="overlay-close" onclick="document.getElementById('shortcutsPanel').classList.remove('show')">✕</button>
+    </div>
+    <div class="shortcut-section">App</div>
+    <div class="shortcut-row"><span class="shortcut-desc">Focus URL input</span><span class="shortcut-key">G</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Focus search</span><span class="shortcut-key">S</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Toggle favorite</span><span class="shortcut-key">F</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Add to queue</span><span class="shortcut-key">Q</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Next in queue</span><span class="shortcut-key">N</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Copy link</span><span class="shortcut-key">C</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Toggle loop</span><span class="shortcut-key">L</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Toggle autoplay</span><span class="shortcut-key">A</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Picture-in-picture</span><span class="shortcut-key">P</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Toggle light/dark</span><span class="shortcut-key">T</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Show shortcuts</span><span class="shortcut-key">?</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Close panel</span><span class="shortcut-key">Esc</span></div>
+    <div class="shortcut-section">Playback (click player first)</div>
+    <div class="shortcut-row"><span class="shortcut-desc">Play / Pause</span><span class="shortcut-key">Space / K</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Seek back / forward 5s</span><span class="shortcut-key">← / →</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Seek back / forward 10s</span><span class="shortcut-key">J / L</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Mute / Unmute</span><span class="shortcut-key">M</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Fullscreen</span><span class="shortcut-key">F</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Volume up / down</span><span class="shortcut-key">↑ / ↓</span></div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 <input type="file" id="importFileInput" accept=".json" onchange="importHistory(event)"/>
@@ -540,6 +624,7 @@
   }
   const HISTORY_KEY  = 'cookiefree_history';
   const FAVS_KEY     = 'cookiefree_favorites';
+  const QUEUE_KEY    = 'cookiefree_queue';
   const TITLES_KEY   = 'cookiefree_titles';
   const THEME_KEY    = 'cookiefree_theme';
   const MAX_HISTORY  = 24;
@@ -552,7 +637,7 @@
   let lastQuery       = '';
   let searchFilters   = { dur: '', ord: 'relevance' };
   // rel:true = hide related (rel=0 in embed url), queueAdvance = auto-play next
-  let playerOpts      = { autoplay: true, loop: false, rel: true };
+  let playerOpts      = { autoplay: true, loop: false, rel: true, queueAdvance: false };
   // Track auto-advance polling
   let _advanceTimer   = null;
 
@@ -582,6 +667,7 @@
     document.querySelectorAll('.tab-panel').forEach(p => {
       p.classList.toggle('active', p.id === 'tab-' + tab);
     });
+    if (tab === 'queue')     renderQueueTab();
     if (tab === 'favorites') renderFavoritesTab();
   }
 
@@ -589,6 +675,16 @@
   function toggleOpt(opt) {
     playerOpts[opt] = !playerOpts[opt];
     document.getElementById('opt-' + opt)?.classList.toggle('on', playerOpts[opt]);
+    if (opt === 'queueAdvance') {
+      if (playerOpts.queueAdvance) {
+        showToast('Auto-next ON');
+        if (currentVideoId) fetchDurationAndStartWatcher(currentVideoId);
+      } else {
+        stopAdvanceWatcher();
+        showToast('Auto-next OFF');
+      }
+      return;
+    }
     if (currentVideoId) reloadPlayer();
   }
 
@@ -717,6 +813,7 @@
           </div>
           ${dur ? `<div class="result-duration">${dur}</div>` : ''}
           <div class="result-overlay-actions">
+            <button class="result-overlay-btn" onclick="event.stopPropagation();addToQueue('${id}','${esc(title)}')">+ QUEUE</button>
             <button class="result-overlay-btn fav-tog" data-id="${id}" data-title="${esc(title)}" onclick="event.stopPropagation();toggleFavById('${id}','${esc(title)}',this)">${isFav ? '★' : '☆'}</button>
           </div>
         </div>
@@ -763,55 +860,78 @@
   async function openChannelPage(channelId) {
     document.getElementById('tab-btn-channel').style.display = '';
     switchTab('channel');
+
     const loadEl  = document.getElementById('chLoading');
     const errEl   = document.getElementById('chError');
     const content = document.getElementById('chContent');
     errEl.textContent = ''; errEl.classList.remove('show');
     content.style.display = 'none';
     loadEl.style.display = 'block';
+
     chState.channelId = channelId;
     chState.uploadsPlaylistId = null;
     chState.nextPageToken = null;
+
     try {
+      // Fetch channel metadata + uploads playlist ID in one call
       const metaParams = new URLSearchParams({ part: 'snippet,statistics,brandingSettings,contentDetails', id: channelId, key: API_KEY() });
       const metaRes  = await fetch(`https://www.googleapis.com/youtube/v3/channels?${metaParams}`);
       const metaData = await metaRes.json();
       if (metaData.error) throw new Error(metaData.error.message);
       const ch = metaData.items?.[0];
       if (!ch) throw new Error('Channel not found');
+
       chState.uploadsPlaylistId = ch.contentDetails?.relatedPlaylists?.uploads || null;
+
+      // Banner
       const bannerUrl = ch.brandingSettings?.image?.bannerExternalUrl;
       document.getElementById('chBannerWrap').innerHTML = bannerUrl
-        ? `<img class="ch-banner" src="${bannerUrl}=w1280" alt="banner" onerror="this.style.display='none'">`
+        ? `<img class="ch-banner" src="${bannerUrl}=w1280" alt="channel banner" onerror="this.style.display='none'">`
         : `<div class="ch-banner-placeholder"></div>`;
+
+      // Avatar
       const avatarUrl = ch.snippet?.thumbnails?.high?.url || ch.snippet?.thumbnails?.default?.url;
       document.getElementById('chAvatarWrap').innerHTML = avatarUrl
         ? `<img class="ch-avatar" src="${avatarUrl}" alt="avatar">`
         : `<div class="ch-avatar-placeholder"></div>`;
+
       document.getElementById('chName').textContent = ch.snippet?.title || '';
       const handle = ch.snippet?.customUrl || '';
       document.getElementById('chHandle').textContent = handle;
       document.getElementById('chHandle').style.display = handle ? '' : 'none';
-      const subs = ch.statistics?.subscriberCount, vids = ch.statistics?.videoCount, views = ch.statistics?.viewCount;
+
+      const subs  = ch.statistics?.subscriberCount;
+      const vids  = ch.statistics?.videoCount;
+      const views = ch.statistics?.viewCount;
       const parts = [];
       if (subs && !ch.statistics.hiddenSubscriberCount) parts.push(fmtCount(subs) + ' subscribers');
       if (vids)  parts.push(fmtCount(vids) + ' videos');
       if (views) parts.push(fmtCount(views) + ' total views');
       document.getElementById('chStats').textContent = parts.join(' · ');
+
       const desc = (ch.snippet?.description || '').trim();
-      const descEl = document.getElementById('chDesc'), toggleEl = document.getElementById('chDescToggle');
+      const descEl   = document.getElementById('chDesc');
+      const toggleEl = document.getElementById('chDescToggle');
       descEl.textContent = desc;
-      if (desc.length > 180) { toggleEl.style.display = 'inline-block'; toggleEl.textContent = 'SHOW MORE'; descEl.classList.remove('expanded'); }
-      else { toggleEl.style.display = 'none'; }
+      if (desc.length > 180) {
+        toggleEl.style.display = 'inline-block';
+        toggleEl.textContent = 'SHOW MORE';
+        descEl.classList.remove('expanded');
+      } else {
+        toggleEl.style.display = 'none';
+      }
+
       document.querySelectorAll('.ch-sort-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.ch-sort-btn')[0].classList.add('active');
       chState.order = 'date';
+
       content.style.display = 'block';
       loadEl.style.display = 'none';
       await loadChVideos(false);
     } catch(e) {
       loadEl.style.display = 'none';
-      errEl.textContent = `⚠ ${e.message}`; errEl.classList.add('show');
+      errEl.textContent = `⚠ ${e.message}`;
+      errEl.classList.add('show');
     }
   }
 
@@ -823,12 +943,15 @@
   }
 
   function toggleChDesc() {
-    const d = document.getElementById('chDesc'), t = document.getElementById('chDescToggle');
-    t.textContent = d.classList.toggle('expanded') ? 'SHOW LESS' : 'SHOW MORE';
+    const d = document.getElementById('chDesc');
+    const t = document.getElementById('chDescToggle');
+    const exp = d.classList.toggle('expanded');
+    t.textContent = exp ? 'SHOW LESS' : 'SHOW MORE';
   }
 
   async function chSort(order) {
-    chState.order = order; chState.nextPageToken = null;
+    chState.order = order;
+    chState.nextPageToken = null;
     document.querySelectorAll('.ch-sort-btn').forEach(b => {
       const map = { date:'NEWEST', viewCount:'MOST VIEWED', relevance:'RELEVANCE', rating:'TOP RATED' };
       b.classList.toggle('active', b.textContent.trim() === map[order]);
@@ -840,38 +963,72 @@
   async function loadMoreChVideos() { await loadChVideos(true); }
 
   async function loadChVideos(append) {
-    const errEl = document.getElementById('chError');
+    const errEl   = document.getElementById('chError');
     errEl.textContent = ''; errEl.classList.remove('show');
-    const grid = document.getElementById('chGrid'), moreBtn = document.getElementById('chMore');
+    const grid    = document.getElementById('chGrid');
+    const moreBtn = document.getElementById('chMore');
     if (!append) { grid.innerHTML = ''; moreBtn.style.display = 'none'; }
+
     try {
       if (chState.order === 'date' && chState.uploadsPlaylistId) {
-        const params = new URLSearchParams({ part: 'snippet', playlistId: chState.uploadsPlaylistId, maxResults: 24, key: API_KEY() });
+        // Use uploads playlist — returns ALL videos, not capped like search
+        const params = new URLSearchParams({
+          part: 'snippet', playlistId: chState.uploadsPlaylistId,
+          maxResults: 24, key: API_KEY()
+        });
         if (append && chState.nextPageToken) params.set('pageToken', chState.nextPageToken);
-        const res = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?${params}`);
+        const res  = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?${params}`);
         const data = await res.json();
         if (data.error) throw new Error(data.error.message);
         chState.nextPageToken = data.nextPageToken || null;
+
         const items = (data.items || []).filter(i => i.snippet?.resourceId?.kind === 'youtube#video');
         const videoIds = items.map(i => i.snippet.resourceId.videoId);
+
         let statsMap = {};
         if (videoIds.length) {
           const sr = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoIds.join(',')}&key=${API_KEY()}`);
           const sd = await sr.json();
-          (sd.items || []).forEach(v => { statsMap[v.id] = { duration: parseDuration(v.contentDetails?.duration), views: v.statistics?.viewCount, title: v.snippet?.title, channel: v.snippet?.channelTitle, channelId: v.snippet?.channelId, thumb: v.snippet?.thumbnails?.medium?.url || '' }; });
+          (sd.items || []).forEach(v => {
+            statsMap[v.id] = {
+              duration:  parseDuration(v.contentDetails?.duration),
+              views:     v.statistics?.viewCount,
+              title:     v.snippet?.title,
+              channel:   v.snippet?.channelTitle,
+              channelId: v.snippet?.channelId,
+              thumb:     v.snippet?.thumbnails?.medium?.url || ''
+            };
+          });
         }
-        const fakeItems = videoIds.filter(id => statsMap[id]).map(id => {
-          const s = statsMap[id];
-          return { id: { videoId: id }, snippet: { title: s.title, channelTitle: s.channel, channelId: s.channelId || chState.channelId, thumbnails: { medium: { url: s.thumb } } } };
-        });
+
+        // Build search-result-compatible items for renderResults
+        const fakeItems = videoIds.map(id => {
+          const s = statsMap[id] || {};
+          return {
+            id: { videoId: id },
+            snippet: {
+              title: s.title || id,
+              channelTitle: s.channel || '',
+              channelId: s.channelId || chState.channelId,
+              thumbnails: { medium: { url: s.thumb } }
+            }
+          };
+        }).filter(i => statsMap[i.id.videoId]);
+
         renderResults(fakeItems, append, statsMap, grid);
+
       } else {
-        const params = new URLSearchParams({ part: 'snippet', channelId: chState.channelId, type: 'video', maxResults: 24, order: chState.order, key: API_KEY() });
+        // Other sort modes use search API
+        const params = new URLSearchParams({
+          part: 'snippet', channelId: chState.channelId, type: 'video',
+          maxResults: 24, order: chState.order, key: API_KEY()
+        });
         if (append && chState.nextPageToken) params.set('pageToken', chState.nextPageToken);
-        const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
+        const res  = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
         const data = await res.json();
         if (data.error) throw new Error(data.error.message);
         chState.nextPageToken = data.nextPageToken || null;
+
         const ids = (data.items || []).map(i => i.id.videoId).filter(Boolean).join(',');
         let statsMap = {};
         if (ids) {
@@ -881,11 +1038,14 @@
         }
         renderResults(data.items, append, statsMap, grid);
       }
+
       moreBtn.style.display = chState.nextPageToken ? 'block' : 'none';
-    } catch(e) { errEl.textContent = `⚠ ${e.message}`; errEl.classList.add('show'); }
+    } catch(e) {
+      errEl.textContent = `⚠ ${e.message}`; errEl.classList.add('show');
+    }
   }
 
-  /* ─── Video ID + timestamp extraction ─── */
+    /* ─── Video ID + timestamp extraction ─── */
   function extractVideoInfo(raw) {
     raw = (raw || '').trim();
     if (!raw) return null;
@@ -904,6 +1064,92 @@
     const m = raw.match(/[?&/]v[=/]([a-zA-Z0-9_-]{11})/);
     if (m) return { id: m[1], start: null };
     return null;
+  }
+
+  /* ─── Queue ─── */
+  function getQueue() { try { return JSON.parse(localStorage.getItem(QUEUE_KEY)) || []; } catch { return []; } }
+  function saveQueue(q) { localStorage.setItem(QUEUE_KEY, JSON.stringify(q)); }
+
+  function addToQueue(id, title) {
+    const q = getQueue();
+    if (q.find(i => i.id === id)) { showToast('Already in queue'); return; }
+    q.push({ id, title: title || getCachedTitle(id) || id });
+    saveQueue(q); showToast('Added to queue');
+    renderQueueTab();
+  }
+
+  function addCurrentToQueue() {
+    if (!currentVideoId) return;
+    addToQueue(currentVideoId, getCachedTitle(currentVideoId) || currentVideoId);
+  }
+
+  function removeFromQueue(id) { saveQueue(getQueue().filter(i => i.id !== id)); renderQueueTab(); }
+  function clearQueue() { saveQueue([]); renderQueueTab(); showToast('Queue cleared'); }
+
+  function playNextInQueue() {
+    const q = getQueue();
+    if (!q.length) { showToast('Queue is empty'); return; }
+    const idx  = currentVideoId ? q.findIndex(i => i.id === currentVideoId) : -1;
+    const next = q[idx + 1] || null;
+    if (next) { playAndScroll(next.id); showToast('▶ ' + (next.title || next.id).slice(0,30)); }
+    else { showToast('End of queue'); }
+  }
+
+  function renderQueueTab() {
+    const q   = getQueue();
+    const el  = document.getElementById('queueList');
+    if (!el) return;
+    if (!q.length) { el.innerHTML = '<div class="empty-msg">Queue is empty. Search for videos and click + QUEUE to add them.</div>'; return; }
+    el.innerHTML = `<div class="queue-list">${q.map((item, i) => `
+      <div class="queue-item ${item.id === currentVideoId ? 'active' : ''}" onclick="playAndScroll('${item.id}')">
+        <span class="queue-num">${i + 1}</span>
+        <img class="queue-thumb" src="https://i.ytimg.com/vi/${item.id}/mqdefault.jpg" alt="" onerror="this.style.opacity=0.3"/>
+        <div class="queue-info">
+          <div class="queue-item-title">${item.title || item.id}</div>
+          <div class="queue-item-id">${item.id}</div>
+        </div>
+        <button class="queue-remove" onclick="event.stopPropagation();removeFromQueue('${item.id}')">✕</button>
+      </div>`).join('')}</div>`;
+  }
+
+  /* ─── Auto-advance queue watcher ───
+     Fetches the video's duration from the API, then sets a setTimeout
+     for the remaining playback time. Cancelled whenever a new video loads.
+  */
+  let _advanceDuration = null; // duration in seconds of current video
+
+  function startAdvanceWatcher() {
+    stopAdvanceWatcher();
+    if (!currentVideoId || !_advanceDuration) return;
+    // Wall-clock seconds since the iframe was created
+    const wallElapsed = playerLoadTime ? (Date.now() - playerLoadTime) / 1000 : 0;
+    // Start offset in the video (from ?t= param)
+    const startOffset = playerStartTime || 0;
+    // How many seconds of the video have likely played so far
+    const videoElapsed = startOffset + wallElapsed;
+    // Remaining time with a small 1s buffer
+    const remainingMs = Math.max((_advanceDuration - videoElapsed) * 1000 - 1000, 500);
+    _advanceTimer = setTimeout(() => {
+      if (playerOpts.queueAdvance && currentVideoId) playNextInQueue();
+    }, remainingMs);
+  }
+
+  function stopAdvanceWatcher() {
+    if (_advanceTimer) { clearTimeout(_advanceTimer); _advanceTimer = null; }
+  }
+
+  async function fetchDurationAndStartWatcher(videoId) {
+    try {
+      const res  = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoId}&key=${API_KEY()}`);
+      const data = await res.json();
+      const iso  = data.items?.[0]?.contentDetails?.duration;
+      if (!iso) return;
+      const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+      if (!m) return;
+      _advanceDuration = (parseInt(m[1]||0)*3600) + (parseInt(m[2]||0)*60) + parseInt(m[3]||0);
+      // Only arm if this video is still the current one
+      if (videoId === currentVideoId && playerOpts.queueAdvance) startAdvanceWatcher();
+    } catch {}
   }
 
   /* Enable JS API on iframe so YouTube sends postMessage events */
@@ -1152,6 +1398,7 @@
     if (hint) hint.style.display = 'block';
     updateUrl(videoId, start);
     updateFavBtn();
+    renderQueueTab();
     updateSearchNowPlaying(videoId);
 
     const knownTitle = getCachedTitle(videoId);
@@ -1165,6 +1412,8 @@
   }
 
   /* ─── Keyboard shortcuts ─── */
+  function showShortcuts() { document.getElementById('shortcutsPanel').classList.add('show'); }
+
   document.addEventListener('keydown', e => {
     const tag = document.activeElement.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA') {
@@ -1174,16 +1423,22 @@
       }
       return;
     }
-    if (e.key === 'Escape') { closeDownloadDirect(); return; }
+    if (e.key === 'Escape') {
+      document.getElementById('shortcutsPanel').classList.remove('show');
+      closeDownloadDirect(); return;
+    }
     const map = {
+      'g':'focusUrl', 'G':'focusUrl',
+      's':'focusSearch', 'S':'focusSearch',
       'f':'toggleFavorite', 'F':'toggleFavorite',
-      'c':'copyShareLink',  'C':'copyShareLink',
-      'l':'loopToggle',     'L':'loopToggle',
-      'a':'autoToggle',     'A':'autoToggle',
-      'p':'requestPiP',     'P':'requestPiP',
-      't':'toggleTheme',    'T':'toggleTheme',
-      'g':'focusUrl',       'G':'focusUrl',
-      's':'focusSearch',    'S':'focusSearch',
+      'q':'addCurrentToQueue', 'Q':'addCurrentToQueue',
+      'n':'playNextInQueue', 'N':'playNextInQueue',
+      'c':'copyShareLink', 'C':'copyShareLink',
+      'l':'loopToggle', 'L':'loopToggle',
+      'a':'autoToggle', 'A':'autoToggle',
+      'p':'requestPiP', 'P':'requestPiP',
+      't':'toggleTheme', 'T':'toggleTheme',
+      '?':'showShortcuts',
     };
     const action = map[e.key];
     if (!action) return;
@@ -1193,7 +1448,7 @@
       case 'focusSearch': document.getElementById('searchInput').focus(); switchTab('search'); break;
       case 'loopToggle':  toggleOpt('loop'); break;
       case 'autoToggle':  toggleOpt('autoplay'); break;
-      default: window[action] && window[action](); break;
+      default: window[action] && window[action]();
     }
   });
 
