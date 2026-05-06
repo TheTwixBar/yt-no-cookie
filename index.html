@@ -659,9 +659,14 @@
 
   /* ─── Tabs ─── */
   function switchTab(tab) {
-    const tabs = ['play','search','channel','queue','favorites'];
-    document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', tabs[i] === tab));
-    document.querySelectorAll('.tab-panel').forEach((p,i) => p.classList.toggle('active', tabs[i] === tab));
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      const fn = b.getAttribute('onclick') || '';
+      const match = fn.match(/switchTab\('(\w+)'\)/);
+      if (match) b.classList.toggle('active', match[1] === tab);
+    });
+    document.querySelectorAll('.tab-panel').forEach(p => {
+      p.classList.toggle('active', p.id === 'tab-' + tab);
+    });
     if (tab === 'queue')     renderQueueTab();
     if (tab === 'favorites') renderFavoritesTab();
   }
@@ -850,10 +855,9 @@
   }
 
   /* ─── Channel Page ─── */
-  let chState = { channelId: null, order: 'date', nextPageToken: null };
+  let chState = { channelId: null, uploadsPlaylistId: null, order: 'date', nextPageToken: null };
 
   async function openChannelPage(channelId) {
-    // Show the channel tab button and switch to it
     document.getElementById('tab-btn-channel').style.display = '';
     switchTab('channel');
 
@@ -865,16 +869,19 @@
     loadEl.style.display = 'block';
 
     chState.channelId = channelId;
+    chState.uploadsPlaylistId = null;
     chState.nextPageToken = null;
 
     try {
-      // Fetch channel metadata
-      const metaParams = new URLSearchParams({ part: 'snippet,statistics,brandingSettings', id: channelId, key: API_KEY() });
+      // Fetch channel metadata + uploads playlist ID in one call
+      const metaParams = new URLSearchParams({ part: 'snippet,statistics,brandingSettings,contentDetails', id: channelId, key: API_KEY() });
       const metaRes  = await fetch(`https://www.googleapis.com/youtube/v3/channels?${metaParams}`);
       const metaData = await metaRes.json();
       if (metaData.error) throw new Error(metaData.error.message);
       const ch = metaData.items?.[0];
       if (!ch) throw new Error('Channel not found');
+
+      chState.uploadsPlaylistId = ch.contentDetails?.relatedPlaylists?.uploads || null;
 
       // Banner
       const bannerUrl = ch.brandingSettings?.image?.bannerExternalUrl;
@@ -888,9 +895,8 @@
         ? `<img class="ch-avatar" src="${avatarUrl}" alt="avatar">`
         : `<div class="ch-avatar-placeholder"></div>`;
 
-      // Name, handle, stats
       document.getElementById('chName').textContent = ch.snippet?.title || '';
-      const handle = ch.snippet?.customUrl ? ch.snippet.customUrl : '';
+      const handle = ch.snippet?.customUrl || '';
       document.getElementById('chHandle').textContent = handle;
       document.getElementById('chHandle').style.display = handle ? '' : 'none';
 
@@ -898,12 +904,11 @@
       const vids  = ch.statistics?.videoCount;
       const views = ch.statistics?.viewCount;
       const parts = [];
-      if (subs  && ch.statistics.hiddenSubscriberCount !== true) parts.push(fmtCount(subs) + ' subscribers');
+      if (subs && !ch.statistics.hiddenSubscriberCount) parts.push(fmtCount(subs) + ' subscribers');
       if (vids)  parts.push(fmtCount(vids) + ' videos');
       if (views) parts.push(fmtCount(views) + ' total views');
       document.getElementById('chStats').textContent = parts.join(' · ');
 
-      // Description
       const desc = (ch.snippet?.description || '').trim();
       const descEl   = document.getElementById('chDesc');
       const toggleEl = document.getElementById('chDescToggle');
@@ -916,15 +921,12 @@
         toggleEl.style.display = 'none';
       }
 
-      // Reset sort buttons
       document.querySelectorAll('.ch-sort-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.ch-sort-btn')[0].classList.add('active');
       chState.order = 'date';
 
       content.style.display = 'block';
       loadEl.style.display = 'none';
-
-      // Load videos
       await loadChVideos(false);
     } catch(e) {
       loadEl.style.display = 'none';
@@ -952,7 +954,7 @@
     chState.nextPageToken = null;
     document.querySelectorAll('.ch-sort-btn').forEach(b => {
       const map = { date:'NEWEST', viewCount:'MOST VIEWED', relevance:'RELEVANCE', rating:'TOP RATED' };
-      b.classList.toggle('active', b.textContent === map[order]);
+      b.classList.toggle('active', b.textContent.trim() === map[order]);
     });
     document.getElementById('chGrid').innerHTML = '';
     await loadChVideos(false);
@@ -961,41 +963,89 @@
   async function loadMoreChVideos() { await loadChVideos(true); }
 
   async function loadChVideos(append) {
-    const errEl = document.getElementById('chError');
+    const errEl   = document.getElementById('chError');
     errEl.textContent = ''; errEl.classList.remove('show');
-    const grid  = document.getElementById('chGrid');
+    const grid    = document.getElementById('chGrid');
     const moreBtn = document.getElementById('chMore');
     if (!append) { grid.innerHTML = ''; moreBtn.style.display = 'none'; }
 
     try {
-      const params = new URLSearchParams({
-        part: 'snippet', channelId: chState.channelId, type: 'video',
-        maxResults: 12, order: chState.order, key: API_KEY()
-      });
-      if (append && chState.nextPageToken) params.set('pageToken', chState.nextPageToken);
-      const res  = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
-      const data = await res.json();
-      if (data.error) throw new Error(data.error.message);
-      chState.nextPageToken = data.nextPageToken || null;
+      if (chState.order === 'date' && chState.uploadsPlaylistId) {
+        // Use uploads playlist — returns ALL videos, not capped like search
+        const params = new URLSearchParams({
+          part: 'snippet', playlistId: chState.uploadsPlaylistId,
+          maxResults: 24, key: API_KEY()
+        });
+        if (append && chState.nextPageToken) params.set('pageToken', chState.nextPageToken);
+        const res  = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?${params}`);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+        chState.nextPageToken = data.nextPageToken || null;
 
-      // Fetch duration + view stats
-      const ids = (data.items||[]).map(i=>i.id.videoId).filter(Boolean).join(',');
-      let statsMap = {};
-      if (ids) {
-        try {
+        const items = (data.items || []).filter(i => i.snippet?.resourceId?.kind === 'youtube#video');
+        const videoIds = items.map(i => i.snippet.resourceId.videoId);
+
+        let statsMap = {};
+        if (videoIds.length) {
+          const sr = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoIds.join(',')}&key=${API_KEY()}`);
+          const sd = await sr.json();
+          (sd.items || []).forEach(v => {
+            statsMap[v.id] = {
+              duration:  parseDuration(v.contentDetails?.duration),
+              views:     v.statistics?.viewCount,
+              title:     v.snippet?.title,
+              channel:   v.snippet?.channelTitle,
+              channelId: v.snippet?.channelId,
+              thumb:     v.snippet?.thumbnails?.medium?.url || ''
+            };
+          });
+        }
+
+        // Build search-result-compatible items for renderResults
+        const fakeItems = videoIds.map(id => {
+          const s = statsMap[id] || {};
+          return {
+            id: { videoId: id },
+            snippet: {
+              title: s.title || id,
+              channelTitle: s.channel || '',
+              channelId: s.channelId || chState.channelId,
+              thumbnails: { medium: { url: s.thumb } }
+            }
+          };
+        }).filter(i => statsMap[i.id.videoId]);
+
+        renderResults(fakeItems, append, statsMap, grid);
+
+      } else {
+        // Other sort modes use search API
+        const params = new URLSearchParams({
+          part: 'snippet', channelId: chState.channelId, type: 'video',
+          maxResults: 24, order: chState.order, key: API_KEY()
+        });
+        if (append && chState.nextPageToken) params.set('pageToken', chState.nextPageToken);
+        const res  = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+        chState.nextPageToken = data.nextPageToken || null;
+
+        const ids = (data.items || []).map(i => i.id.videoId).filter(Boolean).join(',');
+        let statsMap = {};
+        if (ids) {
           const sr = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${ids}&key=${API_KEY()}`);
           const sd = await sr.json();
-          (sd.items||[]).forEach(v => { statsMap[v.id] = { duration: parseDuration(v.contentDetails?.duration), views: v.statistics?.viewCount }; });
-        } catch {}
+          (sd.items || []).forEach(v => { statsMap[v.id] = { duration: parseDuration(v.contentDetails?.duration), views: v.statistics?.viewCount }; });
+        }
+        renderResults(data.items, append, statsMap, grid);
       }
-      renderResults(data.items, append, statsMap, grid);
+
       moreBtn.style.display = chState.nextPageToken ? 'block' : 'none';
     } catch(e) {
       errEl.textContent = `⚠ ${e.message}`; errEl.classList.add('show');
     }
   }
 
-  /* ─── Video ID + timestamp extraction ─── */
+    /* ─── Video ID + timestamp extraction ─── */
   function extractVideoInfo(raw) {
     raw = (raw || '').trim();
     if (!raw) return null;
