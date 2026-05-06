@@ -375,7 +375,10 @@
           <button onclick="doSearch()">SEARCH</button>
         </div>
         <div class="search-filters">
-          <span class="filter-label">DURATION:</span>
+          <span class="filter-label">API KEY:</span>
+          <button class="filter-btn apikey-btn active" onclick="setApiKey(0,this)">API KEY 1</button>
+          <button class="filter-btn apikey-btn" onclick="setApiKey(1,this)">API KEY 2</button>
+          <span class="filter-label" style="margin-left:4px;">DURATION:</span>
           <button class="filter-btn active" data-filter="dur" data-val="" onclick="setFilter('dur','',this)">ANY</button>
           <button class="filter-btn" data-filter="dur" data-val="short" onclick="setFilter('dur','short',this)">&lt;4m</button>
           <button class="filter-btn" data-filter="dur" data-val="medium" onclick="setFilter('dur','medium',this)">4–20m</button>
@@ -556,7 +559,14 @@
 <input type="file" id="importFileInput" accept=".json" onchange="importHistory(event)"/>
 
 <script>
-  const API_KEY      = 'AIzaSyC3g27Ps83Fr37qus5cnXzlm2z7sipJkgc';
+  const API_KEYS     = ['AIzaSyBPu6dYKeAo09dAGAOINvvSjbpd_xdENmg','AIzaSyC3g27Ps83Fr37qus5cnXzlm2z7sipJkgc'];
+  let   activeKeyIdx = 0;
+  const API_KEY      = () => API_KEYS[activeKeyIdx];
+  function setApiKey(idx, el) {
+    activeKeyIdx = idx;
+    document.querySelectorAll('.apikey-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+  }
   const HISTORY_KEY  = 'cookiefree_history';
   const FAVS_KEY     = 'cookiefree_favorites';
   const QUEUE_KEY    = 'cookiefree_queue';
@@ -635,7 +645,7 @@
     const cached = getCachedTitle(id);
     if (cached) return cached;
     try {
-      const res  = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${id}&key=${API_KEY}`);
+      const res  = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${id}&key=${API_KEY()}`);
       const data = await res.json();
       const title = data.items?.[0]?.snippet?.title;
       if (title) { cacheTitle(id, title); return title; }
@@ -657,7 +667,7 @@
     errEl.classList.remove('show'); loadEl.classList.add('show');
     try {
       const params = new URLSearchParams({
-        part: 'snippet', q: query, type: 'video', maxResults: 12, key: API_KEY,
+        part: 'snippet', q: query, type: 'video', maxResults: 12, key: API_KEY(),
         ...(searchFilters.dur && { videoDuration: searchFilters.dur }),
         ...(searchFilters.ord && { order: searchFilters.ord }),
         ...(pageToken && { pageToken })
@@ -675,7 +685,7 @@
       let statsMap = {};
       if (ids) {
         try {
-          const sr = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${ids}&key=${API_KEY}`);
+          const sr = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${ids}&key=${API_KEY()}`);
           const sd = await sr.json();
           (sd.items || []).forEach(v => { statsMap[v.id] = { duration: parseDuration(v.contentDetails?.duration), views: v.statistics?.viewCount }; });
         } catch {}
@@ -793,7 +803,7 @@
     document.getElementById('searchMore').style.display = 'none';
     errEl.classList.remove('show'); loadEl.classList.add('show');
     try {
-      const params = new URLSearchParams({ part:'snippet', channelId, type:'video', maxResults:12, order: searchFilters.ord, key: API_KEY });
+      const params = new URLSearchParams({ part:'snippet', channelId, type:'video', maxResults:12, order: searchFilters.ord, key: API_KEY() });
       const res  = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
       const data = await res.json();
       if (data.error) { errEl.textContent = `⚠ ${data.error.message}`; errEl.classList.add('show'); loadEl.classList.remove('show'); return; }
@@ -802,7 +812,7 @@
       let statsMap = {};
       if (ids) {
         try {
-          const sr = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${ids}&key=${API_KEY}`);
+          const sr = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${ids}&key=${API_KEY()}`);
           const sd = await sr.json();
           (sd.items||[]).forEach(v => { statsMap[v.id] = { duration: parseDuration(v.contentDetails?.duration), views: v.statistics?.viewCount }; });
         } catch {}
@@ -908,7 +918,7 @@
 
   async function fetchDurationAndStartWatcher(videoId) {
     try {
-      const res  = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoId}&key=${API_KEY}`);
+      const res  = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoId}&key=${API_KEY()}`);
       const data = await res.json();
       const iso  = data.items?.[0]?.contentDetails?.duration;
       if (!iso) return;
