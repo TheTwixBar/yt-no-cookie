@@ -199,9 +199,6 @@
     .action-btn:hover { color: var(--accent); }
     .action-btn.active { color: var(--accent); }
     .action-btn svg { width: 11px; height: 11px; }
-    .dl-btn { font-family: 'Space Mono', monospace; font-size: 11px; color: #000; background: var(--accent); border: none; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 2px; font-weight: 700; letter-spacing: 0.5px; transition: opacity 0.15s; }
-    .dl-btn:hover { opacity: 0.85; }
-    .dl-btn svg { width: 11px; height: 11px; }
     .open-link { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 5px; transition: color 0.15s; }
     .open-link:hover { color: var(--accent); }
     .open-link svg { width: 11px; height: 11px; }
@@ -235,31 +232,6 @@
     body.light .text-btn.accent:hover { background: rgba(92,0,230,0.08); }
     .queue-tab-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 
-
-    /* DOWNLOAD MODAL */
-    .dl-modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-    .dl-modal-backdrop.show { display: flex; }
-    .dl-modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 480px; margin: 16px; animation: fadeUp 0.2s ease both; }
-    .dl-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
-    .dl-modal-title { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
-    .dl-modal-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0; transition: color 0.15s; }
-    .dl-modal-close:hover { color: var(--accent2); }
-    .dl-modal-body { padding: 20px; }
-    .dl-video-title { font-size: 13px; color: var(--text); margin-bottom: 16px; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .dl-loading { text-align: center; padding: 24px 0; }
-    .dl-loading .spinner { margin: 0 auto 10px; }
-    .dl-loading p { font-family: 'Space Mono', monospace; font-size: 11px; color: #444; letter-spacing: 1px; }
-    .dl-error { padding: 12px 14px; background: rgba(255,71,71,0.1); border-left: 3px solid var(--accent2); border-radius: 2px; font-size: 12px; color: var(--accent2); font-family: 'Space Mono', monospace; }
-    .dl-formats { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; }
-    .dl-format { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); gap: 10px; transition: border-color 0.15s; }
-    .dl-format:hover { border-color: var(--accent); }
-    .dl-format-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-    .dl-format-res { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text); }
-    .dl-format-meta { font-family: 'Space Mono', monospace; font-size: 10px; color: #555; }
-    .dl-format-link { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; color: #000; background: var(--accent); padding: 5px 12px; border-radius: 2px; text-decoration: none; white-space: nowrap; flex-shrink: 0; transition: opacity 0.15s; }
-    .dl-format-link:hover { opacity: 0.85; }
-    .dl-section-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1px; color: #444; text-transform: uppercase; margin: 12px 0 6px; }
-    .dl-note { margin-top: 14px; font-size: 11px; color: #444; line-height: 1.5; }
 
     /* TOAST */
     .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px); background: var(--accent); color: #000; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 8px 18px; border-radius: 100px; letter-spacing: 1px; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; z-index: 1000; pointer-events: none; white-space: nowrap; }
@@ -469,10 +441,6 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             + TIMESTAMP
           </button>
-          <button class="dl-btn" onclick="openDownload()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            DOWNLOAD
-          </button>
           <a class="open-link" id="nocookieLink" href="#" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             OPEN DIRECT
@@ -510,25 +478,6 @@
   </footer>
 </div>
 
-<!-- DOWNLOAD MODAL -->
-<div class="dl-modal-backdrop" id="dlBackdrop" onclick="if(event.target===this)closeDownloadDirect()">
-  <div class="dl-modal">
-    <div class="dl-modal-header">
-      <span class="dl-modal-title">⬇ Download Video</span>
-      <button class="dl-modal-close" onclick="closeDownloadDirect()">✕</button>
-    </div>
-    <div class="dl-modal-body">
-      <div id="dlLoading" class="dl-loading"><div class="spinner"></div><p>FETCHING FORMATS…</p></div>
-      <div id="dlError" class="dl-error" style="display:none"></div>
-      <div id="dlContent" style="display:none">
-        <div class="dl-video-title" id="dlTitle"></div>
-        <div id="dlFormatList" class="dl-formats"></div>
-        <p class="dl-note">⚠ High-quality streams may be separate. For merged output use <a href="https://cobalt.tools" target="_blank" style="color:var(--accent)">cobalt.tools</a>.</p>
-      </div>
-    </div>
-  </div>
-</div>
-
 
 <div class="toast" id="toast"></div>
 <input type="file" id="importFileInput" accept=".json" onchange="importHistory(event)"/>
@@ -555,6 +504,9 @@
   let nextPageToken   = null;
   let lastQuery       = '';
   let searchFilters   = { dur: '', ord: 'relevance' };
+
+  // Search cache: key = "query|dur|ord|pageToken", value = { items, statsMap, nextPageToken }
+  const searchCache = new Map();
   // rel:true = hide related (rel=0 in embed url), queueAdvance = auto-play next
   let playerOpts      = { autoplay: true, loop: false, rel: true };
   // Track auto-advance polling
@@ -620,6 +572,7 @@
   /* ─── Search filters ─── */
   function setFilter(type, val, btn) {
     searchFilters[type] = val;
+    searchCache.clear(); // filters changed, cached results are stale
     document.querySelectorAll(`.filter-btn[data-filter="${type}"]`).forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
   }
@@ -653,7 +606,19 @@
     }
     const errEl  = document.getElementById('searchError');
     const loadEl = document.getElementById('searchLoading');
-    errEl.classList.remove('show'); loadEl.classList.add('show');
+    errEl.classList.remove('show');
+
+    // Build cache key from all search params
+    const cacheKey = `${query}|${searchFilters.dur}|${searchFilters.ord}|${pageToken || ''}`;
+    if (searchCache.has(cacheKey)) {
+      const cached = searchCache.get(cacheKey);
+      nextPageToken = cached.nextPageToken;
+      renderResults(cached.items, !!pageToken, cached.statsMap);
+      document.getElementById('searchMore').style.display = nextPageToken ? 'block' : 'none';
+      return;
+    }
+
+    loadEl.classList.add('show');
     try {
       const params = new URLSearchParams({
         part: 'snippet', q: query, type: 'video', maxResults: 12, key: API_KEY(),
@@ -669,7 +634,6 @@
       }
       nextPageToken = data.nextPageToken || null;
       const items = data.items || [];
-      // Fetch video stats (duration + views) in one batched call
       const ids = items.map(i => i.id.videoId).filter(Boolean).join(',');
       let statsMap = {};
       if (ids) {
@@ -679,6 +643,9 @@
           (sd.items || []).forEach(v => { statsMap[v.id] = { duration: parseDuration(v.contentDetails?.duration), views: v.statistics?.viewCount }; });
         } catch {}
       }
+      // Cache result (keep max 50 entries to avoid unbounded memory)
+      if (searchCache.size >= 50) searchCache.delete(searchCache.keys().next().value);
+      searchCache.set(cacheKey, { items, statsMap, nextPageToken });
       renderResults(items, !!pageToken, statsMap);
       document.getElementById('searchMore').style.display = nextPageToken ? 'block' : 'none';
     } catch (e) {
@@ -869,33 +836,71 @@
     const grid = document.getElementById('chGrid'), moreBtn = document.getElementById('chMore');
     if (!append) { grid.innerHTML = ''; moreBtn.style.display = 'none'; }
     try {
-      // For popular, use search API with viewCount order
       if (chState.order === 'popular') {
         const params = new URLSearchParams({ part: 'snippet', channelId: chState.channelId, type: 'video', maxResults: 24, order: 'viewCount', key: API_KEY() });
         if (append && chState.nextPageToken) params.set('pageToken', chState.nextPageToken);
         const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
         const data = await res.json();
-        if (data.error) throw new Error(data.error.message);
+        if (data.error) throw new Error(`API ${data.error.code}: ${data.error.message}`);
         chState.nextPageToken = data.nextPageToken || null;
-        const ids = (data.items || []).map(i => i.id.videoId).filter(Boolean).join(',');
+        const videoIds = (data.items || []).map(i => i.id?.videoId).filter(Boolean);
+        if (!videoIds.length) throw new Error('No results returned for Popular — API may not support this for channel');
         let statsMap = {};
-        if (ids) {
-          const sr = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${ids}&key=${API_KEY()}`);
-          const sd = await sr.json();
-          (sd.items || []).forEach(v => { statsMap[v.id] = { duration: parseDuration(v.contentDetails?.duration), views: v.statistics?.viewCount }; });
+        const sr = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoIds.join(',')}&key=${API_KEY()}`);
+        const sd = await sr.json();
+        (sd.items || []).forEach(v => { statsMap[v.id] = { duration: parseDuration(v.contentDetails?.duration), views: v.statistics?.viewCount, title: v.snippet?.title, channel: v.snippet?.channelTitle, channelId: v.snippet?.channelId, thumb: v.snippet?.thumbnails?.medium?.url || '' }; });
+        const fakeItems = videoIds.filter(id => statsMap[id]).map(id => {
+          const s = statsMap[id];
+          return { id: { videoId: id }, snippet: { title: s.title, channelTitle: s.channel, channelId: s.channelId || chState.channelId, thumbnails: { medium: { url: s.thumb } } } };
+        });
+        renderResults(fakeItems, append, statsMap, grid);
+
+      } else if (chState.order === 'oldest') {
+        if (!chState.uploadsPlaylistId) throw new Error('Uploads playlist unavailable');
+        // Paginate through the playlist with part=id only (cheap) to find the last page token
+        if (!append) {
+          chState.oldestPageToken = null;
+          let scanToken = null;
+          for (let i = 0; i < 20; i++) {
+            const p = new URLSearchParams({ part: 'id', playlistId: chState.uploadsPlaylistId, maxResults: 50, key: API_KEY() });
+            if (scanToken) p.set('pageToken', scanToken);
+            const r = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?${p}`);
+            const d = await r.json();
+            if (d.error) throw new Error(`API ${d.error.code}: ${d.error.message}`);
+            if (!d.nextPageToken) { chState.oldestPageToken = scanToken; break; }
+            scanToken = d.nextPageToken;
+          }
         }
-        renderResults(data.items || [], append, statsMap, grid);
+        const params = new URLSearchParams({ part: 'snippet', playlistId: chState.uploadsPlaylistId, maxResults: 24, key: API_KEY() });
+        if (chState.oldestPageToken) params.set('pageToken', chState.oldestPageToken);
+        const res = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?${params}`);
+        const data = await res.json();
+        if (data.error) throw new Error(`API ${data.error.code}: ${data.error.message}`);
+        chState.nextPageToken = null; // oldest doesn't paginate forward
+        const items = (data.items || []).filter(i => i.snippet?.resourceId?.kind === 'youtube#video').reverse();
+        const videoIds = items.map(i => i.snippet.resourceId.videoId);
+        let statsMap = {};
+        if (videoIds.length) {
+          const sr = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoIds.join(',')}&key=${API_KEY()}`);
+          const sd = await sr.json();
+          (sd.items || []).forEach(v => { statsMap[v.id] = { duration: parseDuration(v.contentDetails?.duration), views: v.statistics?.viewCount, title: v.snippet?.title, channel: v.snippet?.channelTitle, channelId: v.snippet?.channelId, thumb: v.snippet?.thumbnails?.medium?.url || '' }; });
+        }
+        const fakeItems = videoIds.filter(id => statsMap[id]).map(id => {
+          const s = statsMap[id];
+          return { id: { videoId: id }, snippet: { title: s.title, channelTitle: s.channel, channelId: s.channelId || chState.channelId, thumbnails: { medium: { url: s.thumb } } } };
+        });
+        renderResults(fakeItems, append, statsMap, grid);
+
       } else {
-        // date (newest) and oldest both use the uploads playlist; oldest reverses client-side page approach
+        // Newest — uploads playlist default order
         if (!chState.uploadsPlaylistId) throw new Error('Uploads playlist unavailable');
         const params = new URLSearchParams({ part: 'snippet', playlistId: chState.uploadsPlaylistId, maxResults: 24, key: API_KEY() });
         if (append && chState.nextPageToken) params.set('pageToken', chState.nextPageToken);
         const res = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?${params}`);
         const data = await res.json();
-        if (data.error) throw new Error(data.error.message);
+        if (data.error) throw new Error(`API ${data.error.code}: ${data.error.message}`);
         chState.nextPageToken = data.nextPageToken || null;
-        let items = (data.items || []).filter(i => i.snippet?.resourceId?.kind === 'youtube#video');
-        if (chState.order === 'oldest') items = items.reverse();
+        const items = (data.items || []).filter(i => i.snippet?.resourceId?.kind === 'youtube#video');
         const videoIds = items.map(i => i.snippet.resourceId.videoId);
         let statsMap = {};
         if (videoIds.length) {
@@ -1201,7 +1206,6 @@
       }
       return;
     }
-    if (e.key === 'Escape') { closeDownloadDirect(); return; }
     const map = {
       'f':'toggleFavorite', 'F':'toggleFavorite',
       'c':'copyShareLink',  'C':'copyShareLink',
@@ -1234,62 +1238,6 @@
     loadVideo(input);
   }
 
-  /* ─── Download modal ─── */
-  function openDownload() {
-    if (!currentVideoId) return;
-    document.getElementById('dlLoading').style.display  = 'block';
-    document.getElementById('dlError').style.display    = 'none';
-    document.getElementById('dlContent').style.display  = 'none';
-    document.getElementById('dlBackdrop').classList.add('show');
-    fetchFormats(currentVideoId);
-  }
-  function closeDownloadDirect() { document.getElementById('dlBackdrop').classList.remove('show'); }
-
-  async function fetchFormats(videoId) {
-    try {
-      const res  = await fetch(`/.netlify/functions/download?v=${videoId}`);
-      const data = await res.json();
-      document.getElementById('dlLoading').style.display = 'none';
-      if (data.error) {
-        const err = document.getElementById('dlError');
-        err.textContent = '⚠ ' + data.error; err.style.display = 'block'; return;
-      }
-      document.getElementById('dlTitle').textContent = data.title || videoId;
-      renderFormats(data.formats || []);
-      document.getElementById('dlContent').style.display = 'block';
-    } catch (e) {
-      document.getElementById('dlLoading').style.display = 'none';
-      const err = document.getElementById('dlError');
-      err.textContent = '⚠ Network error: ' + e.message; err.style.display = 'block';
-    }
-  }
-
-  function renderFormats(formats) {
-    const list = document.getElementById('dlFormatList');
-    list.innerHTML = '';
-    if (!formats.length) { list.innerHTML = '<div class="dl-error">No downloadable formats found.</div>'; return; }
-    const video = formats.filter(f => f.type === 'video');
-    const audio = formats.filter(f => f.type === 'audio');
-    function makeSection(label, items) {
-      if (!items.length) return;
-      const lbl = document.createElement('div');
-      lbl.className = 'dl-section-label'; lbl.textContent = label;
-      list.appendChild(lbl);
-      items.forEach(f => {
-        const row = document.createElement('div');
-        row.className = 'dl-format';
-        row.innerHTML = `
-          <div class="dl-format-info">
-            <span class="dl-format-res">${f.quality}</span>
-            <span class="dl-format-meta">video + audio merged</span>
-          </div>
-          <a class="dl-format-link" href="${f.url}" download target="_blank" rel="noopener">↓ GET</a>`;
-        list.appendChild(row);
-      });
-    }
-    makeSection('Video', video);
-    makeSection('Audio only', audio);
-  }
 </script>
 </body>
 </html>
